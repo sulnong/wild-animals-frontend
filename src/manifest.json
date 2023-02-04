@@ -70,6 +70,11 @@
     },
     "vueVersion" : "3",
     "h5" : {
-        "title" : "世界野生动植物日"
+        "title" : "",
+        "devServer": {
+            "host": "sl-dev.io",
+            "port": 3000,
+            "disableHostCheck": true
+        }
     }
 }

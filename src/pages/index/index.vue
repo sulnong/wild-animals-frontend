@@ -8,25 +8,43 @@
       还没想好放啥
     </view>
     <view class="bottom-area">
-      放个开始答题的按钮，跳转答题
-      <button @click="test">click me</button>
+      <button class="btn-answer" @click="start_answer_questions">开始答题</button>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
 // import { ref } from 'vue'
-// import { useUserStore } from '../../store/user'
-import {  onShow  } from '@dcloudio/uni-app'
+import { useUserStore } from '../../store/user'
+import {  onLoad } from '@dcloudio/uni-app'
 import { cloud } from '../../../src/api/cloud'
+import { wx } from '../../config'
 
-async function test() {
-  cloud.invokeFunction('common-module', {}).then((res) => {
-    console.log(res)
-  })
+async function start_answer_questions() {
+  const res = cloud.invokeFunction('common-module', {})
+  console.log(res)
 }
-onShow(() => {
-  console.log('on-show')
+
+onLoad(async (params) => {
+  const userStore = useUserStore()
+  const userInfo = userStore.userInfo
+  console.log(userInfo)
+  // Check if have storage
+  if (userInfo) {
+    console.log('test')
+  // Check if redirected
+  } else if (params?.code) {
+    // Get access_token by code
+    const res = await cloud.invokeFunction('Get-OAuth-AccessToken', {})
+    console.log(res)
+  } else {
+    // redirect to wx oauth to get code
+    const wx_auth_url = `
+    ${wx.OAUTH_URL}?appid=${wx.APPID}&redirect_uri=${wx.Redirect_Uri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
+    console.log(`Redirect to ${wx_auth_url}... `)
+    window.location.href = wx_auth_url
+  }
+  // console.log(params)
 })
 
 
@@ -48,17 +66,27 @@ onShow(() => {
 
   .top-area {
     height: 10vh;
-    border: 2px solid red;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
   }
   
   .middle-area {
-    height: 40vh;
-    border: 2px solid red;
+    height: 70vh;
+
   }
   
   .bottom-area {
-    height: 45vh;
+    height: 10vh;
     border: 2px solid red;
+    flex-direction: row;
+    justify-content: center;
+    
+    .btn-answer {
+      width: 40vw;
+      height: 5vh;
+    }
   }
   
   

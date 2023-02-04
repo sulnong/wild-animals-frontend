@@ -3,7 +3,10 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "世界野生动植物日答题抽奖"
+				"navigationBarTitleText": "世界野生动植物日答题抽奖活动",
+        "app-plus": {
+          "titleNView": false
+        }
 			}
 		}
 	],
