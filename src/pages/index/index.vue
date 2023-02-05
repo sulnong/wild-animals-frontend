@@ -9,6 +9,7 @@
     </view>
     <view class="bottom-area">
       <button class="btn-answer" @click="start_answer_questions">开始答题</button>
+      <a href="https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA3NDk4MDQ0MQ==&scene=110#wechat_redirect">点我点我</a>
     </view>
   </view>
 </template>
@@ -21,6 +22,7 @@ import { cloud } from '../../../src/api/cloud'
 import { wx } from '../../config'
 
 async function start_answer_questions() {
+  window.location.href = 'https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA3NDk4MDQ0MQ==&scene=110#wechat_redirect'
   const res = cloud.invokeFunction('common-module', {})
   console.log(res)
 }
