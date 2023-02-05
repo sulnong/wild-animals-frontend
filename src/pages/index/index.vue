@@ -28,15 +28,22 @@ async function start_answer_questions() {
 onLoad(async (params) => {
   const userStore = useUserStore()
   const userInfo = userStore.userInfo
-  console.log(userInfo)
+  console.log('UserInfo: ', userInfo)
   // Check if have storage
-  if (userInfo) {
-    console.log('test')
+  if (userInfo.openid && userInfo.openid != '') {
+    console.log('open id: ', userInfo.openid)
+    // re_auth if expired
   // Check if redirected
   } else if (params?.code) {
     // Get access_token by code
-    const res = await cloud.invokeFunction('Get-OAuth-AccessToken', {})
-    console.log(res)
+    const code = params.code
+    console.log('code: ', code)
+    const res = await cloud.invokeFunction('Get-OAuth-AccessToken', { code })
+    if (res.err !== 0) {
+      // get openid failed
+      return
+    }
+    userStore.setUserinfo({ openid: res.openid})
   } else {
     // redirect to wx oauth to get code
     const wx_auth_url = `

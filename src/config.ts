@@ -15,10 +15,9 @@ export const DEPLOY_URL = getCurrentBaseURL()
  * 微信相关信息
  */
 export const wx = {
-  APPID: 'wx5aca01a0460ff1ef',
-  APP_SECRET: '890d779106ebea575963b4ce98a1e41d',
+  APPID: 'wx6570365231fbe051',
   OAUTH_URL: 'https://open.weixin.qq.com/connect/oauth2/authorize',
-  Redirect_Uri: 'http%3A%2F%2Fsl-dev.io%3A3000'
+  Redirect_Uri: 'http%3A%2F%2Fhw2u9p-www.oss.sl-dev.laf.run%2Findex.html'
 }
 
 /**
