@@ -3,6 +3,7 @@ import { ref } from 'vue'
 interface UserInfo {
   nickname: String,
   openid: String
+  headimgurl: String
   is_subscribe: Boolean
 }
 

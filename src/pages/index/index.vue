@@ -75,7 +75,7 @@ onLoad(async (params) => {
 <style lang="less">
   .content {
     width: 100vw;
-    height: 99vh;
+    height: 100vh;
     background-image: url("../../static/background.jpeg");
     background-size: cover;
     background-position: top;
