@@ -75,6 +75,9 @@
             "host": "sl-dev.io",
             "port": 3000,
             "disableHostCheck": true
+        },
+        "router": {
+          "mode": "history"
         }
     }
 }
