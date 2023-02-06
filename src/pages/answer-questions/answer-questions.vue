@@ -50,8 +50,6 @@ interface wd_questions {
 	answer: wd_option
 }
 
-const userInfo = ref(useUserStore().userInfo)
-
 let questions = ref<[wd_questions]>([] as any)          // 所有问题, 共 5 道题
 let curIndex = ref(0)                                   // 当前题号
 let curQuestion = reactive({data: {}})     // 当前问题
@@ -60,6 +58,7 @@ let curSelectOption = reactive<wd_option>({} as any)    // 当前选项
 let ifShowResult = ref(false)                           // 控制是否展示答题结果, 用于确认按钮之后
 let isCorrect = ref(true)                               // 判断是否答对
 let correctNums = ref(0)                                // 统计总共答对了几道题
+let userInfo = ref(useUserStore().getUserInfo())
 
 // 勾选答案
 function selectOption(op_index: number) {
@@ -94,10 +93,14 @@ function nextQuestion() {
   isCorrect.value = true
 	if (curIndex.value === 4) {
 		// 最后一题了，这个时候跳转结算页面
-		console.log('跳转结算页面')
 		uni.showToast({
 			title: '即将跳转结算页面'
 		})
+    setTimeout(() => {
+      uni.navigateTo({
+        url: '/pages/result/result'
+      })
+    }, 1500)
 	} else {
 		++curIndex.value
     curQuestion.data = questions.value[curIndex.value]
@@ -142,16 +145,17 @@ onLoad(async () => {
 	
 	.question-container {
 		margin: 0 30rpx 40rpx 30rpx;
-		font-size: 40rpx;
+		font-size: 38rpx;
 		
 		.question-content {
-			font-size: 44rpx;
+			font-size: 40rpx;
 			margin-bottom: 30rpx;
 			background-image: linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%);
 			border-radius: 20rpx;
 			padding-left: 20rpx;
 			display: flex;
 			align-items: center;
+      min-height: 90rpx;
 		}
 		
 		.question-op {

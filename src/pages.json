@@ -1,38 +1,48 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-		{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": "世界野生动植物日答题抽奖活动",
-				"app-plus": {
-					"titleNView": false
-				}
-			}
-		}, {
-			"path": "pages/about/about",
-			"style": {
-				"navigationBarTitleText": "活动说明",
-				"enablePullDownRefresh": false,
-				"app-plus": {
-					"titleNView": false
-				}
-			}
+  "pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "世界野生动植物日答题抽奖活动",
+        "enablePullDownRefresh": false,
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    }, {
+      "path": "pages/about/about",
+      "style": {
+        "navigationBarTitleText": "活动说明",
+        "enablePullDownRefresh": false,
+        "app-plus": {
+          "titleNView": false
+        }
+      }
 
-		}, {
-			"path": "pages/answer-questions/answer-questions",
-			"style": {
-				"navigationBarTitleText": "世界野生动植物日答题答题",
-				"app-plus": {
-					"titleNView": false
-				}
-			}
+    }, {
+      "path": "pages/answer-questions/answer-questions",
+      "style": {
+        "navigationBarTitleText": "世界野生动植物日答题答题",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
 
-		}
-	],
-	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
-	}
+    }, {
+      "path": "pages/result/result",
+      "style": {
+        "navigationBarTitleText": "世界野生动植物日答题答题",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "uni-app",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  }
 }
