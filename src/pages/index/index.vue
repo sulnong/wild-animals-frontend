@@ -2,14 +2,15 @@
 <template>
   <view class="content">
     <view class="top-area">
-      这里放活动声明，关闭声音按钮
+       <u-icon name="info-circle" size="60"></u-icon>
+	   <text class="text-explain" @click="go_to_about">活动说明</text>
     </view>
     <view class="middle-area">
       还没想好放啥
     </view>
     <view class="bottom-area">
-      <button class="btn-answer" @click="start_answer_questions">开始答题</button>
-      <a href="https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA3NDk4MDQ0MQ==&scene=110#wechat_redirect">点我点我</a>
+	  <button class="btn-answer"
+	  @click="start_answer_questions">开始答题</button>
     </view>
   </view>
 </template>
@@ -17,15 +18,26 @@
 <script setup lang="ts">
 // import { ref } from 'vue'
 import { useUserStore } from '../../store/user'
-import {  onLoad } from '@dcloudio/uni-app'
+import { onLoad } from '@dcloudio/uni-app'
 import { cloud } from '../../../src/api/cloud'
 import { wx } from '../../config'
 
-async function start_answer_questions() {
+function test() {
   window.location.href = 'https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA3NDk4MDQ0MQ==&scene=110#wechat_redirect'
-  const res = cloud.invokeFunction('common-module', {})
-  console.log(res)
 }
+
+function go_to_about() {
+	uni.navigateTo({
+		url: '/pages/about/about'
+	})
+}
+
+async function start_answer_questions() {
+	uni.redirectTo({
+		url: '/pages/answer-questions/answer-questions'
+	})
+}
+
 
 onLoad(async (params) => {
   const userStore = useUserStore()
@@ -34,26 +46,25 @@ onLoad(async (params) => {
   // Check if have storage
   if (userInfo.openid && userInfo.openid != '') {
     console.log('open id: ', userInfo.openid)
-    // re_auth if expired
   // Check if redirected
   } else if (params?.code) {
     // Get access_token by code
     const code = params.code
     console.log('code: ', code)
-    const res = await cloud.invokeFunction('Get-OAuth-AccessToken', { code })
+    const res = await cloud.invokeFunction('Get-UserInfo', { code })
+    console.log(res)
     if (res.err !== 0) {
       // get openid failed
       return
     }
-    userStore.setUserinfo({ openid: res.openid})
+    userStore.setUserinfo(res)
   } else {
     // redirect to wx oauth to get code
     const wx_auth_url = `
-    ${wx.OAUTH_URL}?appid=${wx.APPID}&redirect_uri=${wx.Redirect_Uri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
+      ${wx.OAUTH_URL}?appid=${wx.APPID}&redirect_uri=${wx.Redirect_Uri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
     console.log(`Redirect to ${wx_auth_url}... `)
     window.location.href = wx_auth_url
   }
-  // console.log(params)
 })
 
 
@@ -74,11 +85,18 @@ onLoad(async (params) => {
     flex-direction: column;
 
   .top-area {
-    height: 10vh;
-
+	border: 2px solid red;
+	padding: 10px 10px;
+    height: 15vh;
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
+	align-items: flex-start;
+	
+	.text-explain {
+		margin-left: 15rpx;
+		font-size: 40rpx;
+	}
   }
   
   .middle-area {
@@ -87,14 +105,15 @@ onLoad(async (params) => {
   }
   
   .bottom-area {
-    height: 10vh;
-    border: 2px solid red;
+    height: 15vh;
     flex-direction: row;
     justify-content: center;
     
     .btn-answer {
-      width: 40vw;
-      height: 5vh;
+      width: 400rpx;
+      height: 100rpx;
+	  background-color: royalblue;
+	  color: white;
     }
   }
   
