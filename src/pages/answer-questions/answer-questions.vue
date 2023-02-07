@@ -129,7 +129,7 @@ onLoad(async () => {
 	width: 100vw;
 	height: 100vh;
 	background-image: url("../../static/background.jpeg");
-	background-size: cover;
+	background-size: 100% 100vh;
 	background-position: top;
 	background-repeat: no-repeat;
 	background-attachment: fixed;
