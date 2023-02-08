@@ -50,6 +50,10 @@
           <u-icon name="gift" size="36"></u-icon>
           <text class="wd-label">我的奖品</text>
         </view>
+        <view v-if="userInfo.data.is_win" class="never-win">
+          <view class="iconfont icon-gift" style="font-size: 120rpx;"></view>
+          <text style="font-size: 40rpx;margin-top: 30rpx;">暂无中奖记录</text>
+        </view>
       </view>
     </view>
 
@@ -60,72 +64,69 @@
 
 <script setup lang="ts">
 // import { ref } from 'vue'
-import { useUserStore } from "../../store/user";
-import { onLoad } from "@dcloudio/uni-app";
-import { cloud } from "../../../src/api/cloud";
-import { wx } from "../../config";
-import { getCurrentInstance, onMounted, ref } from "vue";
-let currentInstance = "";
+import { useUserStore } from '../../store/user'
+import { onLoad } from '@dcloudio/uni-app'
+import { cloud } from '../../../src/api/cloud'
+import { wx } from '../../config'
+import { getCurrentInstance, onMounted, ref, reactive } from 'vue'
+let currentInstance = ''
+let userInfo = reactive({ data: {} } as any)
 
 onMounted(() => {
-  currentInstance = getCurrentInstance();
-});
+  currentInstance = getCurrentInstance()
+})
 
 function test() {
   window.location.href =
-    "https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA3NDk4MDQ0MQ==&scene=110#wechat_redirect";
+    'https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA3NDk4MDQ0MQ==&scene=110#wechat_redirect'
 }
 
-function go_to_about() {
-  uni.navigateTo({
-    url: "/pages/about/about",
-  });
-}
 
 async function start_answer_questions() {
   // 判断当前是否处于活动有效期
-  const res = await cloud.invoke("Get-If-Active", {});
+  const res = await cloud.invoke('Get-If-Active', {})
   if (!res.is_active) {
     currentInstance.ctx.$refs.uToast.show({
       title: res.tip,
-      type: "error",
-    });
-    return;
+      type: 'error',
+      position: 'top',
+    })
+    return
   }
   uni.redirectTo({
-    url: "/pages/answer-questions/answer-questions",
-  });
+    url: '/pages/answer-questions/answer-questions',
+  })
 }
 
 onLoad(async (params) => {
-  const userStore = useUserStore();
-  const userInfo = userStore.userInfo;
-  console.log("UserInfo: ", userInfo);
+  const userStore = useUserStore()
+  userInfo.data = userStore.userInfo
+  console.log('UserInfo: ', userInfo)
   // Check if have storage
-  if (userInfo.openid && userInfo.openid != "") {
-    console.log("open id: ", userInfo.openid);
+  if (userInfo.data.openid && userInfo.data.openid != '') {
+    console.log('open id: ', userInfo.data.openid)
     // Check if redirected
   } else if (params?.code) {
     // Get access_token by code
-    const code = params.code;
-    console.log("code: ", code);
-    const res = await cloud.invokeFunction("Get-UserInfo", {
+    const code = params.code
+    console.log('code: ', code)
+    const res = await cloud.invokeFunction('Get-UserInfo', {
       code,
-    });
-    console.log(res);
+    })
+    console.log(res)
     if (res.err !== 0) {
       // get openid failed
-      return;
+      return
     }
-    userStore.setUserinfo(res);
+    userStore.setUserinfo(res)
   } else {
     // redirect to wx oauth to get code
     const wx_auth_url = `
-      ${wx.OAUTH_URL}?appid=${wx.APPID}&redirect_uri=${wx.Redirect_Uri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`;
-    console.log(`Redirect to ${wx_auth_url}... `);
-    window.location.href = wx_auth_url;
+      ${wx.OAUTH_URL}?appid=${wx.APPID}&redirect_uri=${wx.Redirect_Uri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
+    console.log(`Redirect to ${wx_auth_url}... `)
+    window.location.href = wx_auth_url
   }
-});
+})
 
 // const user = useUserStore()
 </script>
@@ -134,7 +135,7 @@ onLoad(async (params) => {
 .content {
   width: 100vw;
   height: 80vh;
-  background-image: url("../../static/background.jpeg");
+  background-image: url('../../static/background.jpeg');
   background-size: 100% 80vh;
   // background-size: cover;
   background-position: top;
@@ -214,7 +215,6 @@ onLoad(async (params) => {
     padding: 30rpx 10rpx 20rpx 30rpx;
     border-radius: 30rpx;
     background-color: white;
-
     .wd-wrap {
       display: flex;
       align-items: center;
@@ -224,6 +224,15 @@ onLoad(async (params) => {
         font-size: 36rpx;
         font-weight: 600;
       }
+    }
+
+    .never-win {
+      margin-top: 100rpx;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #909399;
     }
   }
 }

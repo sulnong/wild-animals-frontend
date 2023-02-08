@@ -4,7 +4,7 @@
   "git.enableSmartCommit": true,
   "git.autofetch": true,
   // editor
-  "editor.cursorSmoothCaretAnimation": true,
+  "editor.cursorSmoothCaretAnimation": "on",
   "editor.cursorBlinking": "expand",
   "editor.formatOnSave": true,
   "editor.formatOnType": true,

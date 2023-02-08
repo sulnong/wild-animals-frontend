@@ -1,0 +1,23 @@
+{
+  "id": "",
+  "name": "",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "1061319",
+      "name": "gift",
+      "font_class": "gift",
+      "unicode": "e67c",
+      "unicode_decimal": 59004
+    },
+    {
+      "icon_id": "11913483",
+      "name": "gift",
+      "font_class": "gift1",
+      "unicode": "e684",
+      "unicode_decimal": 59012
+    }
+  ]
+}
