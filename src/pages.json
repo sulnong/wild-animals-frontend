@@ -22,7 +22,7 @@
     }, {
       "path": "pages/answer-questions/answer-questions",
       "style": {
-        "navigationBarTitleText": "世界野生动植物日答题答题",
+        "navigationBarTitleText": "世界野生动植物日答题",
         "app-plus": {
           "titleNView": false
         }
@@ -31,7 +31,7 @@
     }, {
       "path": "pages/result/result",
       "style": {
-        "navigationBarTitleText": "世界野生动植物日答题答题",
+        "navigationBarTitleText": "世界野生动植物日答题",
         "app-plus": {
           "titleNView": false
         }

@@ -76,8 +76,35 @@ $uni-font-size-subtitle:36rpx;
 $uni-color-paragraph: #3F536E; // 文章段落颜色
 $uni-font-size-paragraph:30rpx;
 
-/* 水平flex居中 */
-@@mixin flex-row-center {
+/* 水平 flex 居中 */
+@mixin flex-row-center {
 	display: flex;
-	
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
+
+/* 水平 flex space-around */
+@mixin flex-row-around {
+	display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+}
+
+/* 水平 flex space-between */
+@mixin flex-row-between {
+	display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 垂直 flex 居中*/
+@mixin flex-column-center {
+	display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
