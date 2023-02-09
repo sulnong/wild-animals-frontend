@@ -149,7 +149,7 @@ async function nextQuestion() {
     })
     let param = encodeURIComponent(JSON.stringify(answer_result))
     setTimeout(() => {
-      uni.navigateTo({
+      uni.redirectTo({
         url: `/pages/result/result?param=${param}`,
       })
     }, 500)
@@ -188,7 +188,6 @@ onLoad(async () => {
   background-attachment: fixed;
   display: flex;
   flex-direction: column;
-  font-family: '阿里妈妈东方大楷';
   .avatar-container {
     margin: 60rpx 0 30rpx 60rpx;
     font-size: 40rpx;

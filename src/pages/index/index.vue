@@ -50,7 +50,7 @@
           <u-icon name="gift" size="36"></u-icon>
           <text class="wd-label">我的奖品</text>
         </view>
-        <view v-if="userInfo.data.is_win" class="never-win">
+        <view v-if="!userInfo.data.is_win" class="never-win">
           <view class="iconfont icon-gift" style="font-size: 120rpx;"></view>
           <text style="font-size: 40rpx;margin-top: 30rpx;">暂无中奖记录</text>
         </view>
@@ -69,6 +69,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { cloud } from '../../../src/api/cloud'
 import { wx } from '../../config'
 import { getCurrentInstance, onMounted, ref, reactive } from 'vue'
+import moment from 'moment'
 let currentInstance = ''
 let userInfo = reactive({ data: {} } as any)
 
@@ -93,6 +94,16 @@ async function start_answer_questions() {
     })
     return
   }
+  // 判断当天是否已经答过题 todo
+  const today = moment().format('YYYY-MM-DD')
+  if (userInfo.data.hasOwnProperty(today)) {
+	  currentInstance.ctx.$refs.uToast.show({
+	    title: '当日已答过题，一天只能答一次哦',
+	    type: 'primary',
+	    position: 'top',
+	  })
+	  return
+  }
   uni.redirectTo({
     url: '/pages/answer-questions/answer-questions',
   })
@@ -104,13 +115,19 @@ onLoad(async (params) => {
   console.log('UserInfo: ', userInfo)
   // Check if have storage
   if (userInfo.data.openid && userInfo.data.openid != '') {
-    console.log('open id: ', userInfo.data.openid)
+    // 更新 local storage
+	const { err, err_msg, data } = await cloud.invoke('get-userinfo-by-openid', { openid: userInfo.data.openid })
+	if (err) { 
+		return console.log(err_msg)
+	}
+	userInfo.data = data
+	userStore.setUserinfo(data)
     // Check if redirected
   } else if (params?.code) {
     // Get access_token by code
     const code = params.code
     console.log('code: ', code)
-    const res = await cloud.invokeFunction('Get-UserInfo', {
+    const res = await cloud.invoke('Get-UserInfo', {
       code,
     })
     console.log(res)
@@ -119,6 +136,7 @@ onLoad(async (params) => {
       return
     }
     userStore.setUserinfo(res)
+	userInfo.data = res
   } else {
     // redirect to wx oauth to get code
     const wx_auth_url = `
