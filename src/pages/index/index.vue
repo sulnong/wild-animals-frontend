@@ -63,18 +63,25 @@
 </template>
 
 <script setup lang="ts">
-// import { ref } from 'vue'
+
 import { useUserStore } from '../../store/user'
 import { onLoad } from '@dcloudio/uni-app'
 import { cloud } from '../../../src/api/cloud'
 import { wx } from '../../config'
-import { getCurrentInstance, onMounted, ref, reactive } from 'vue'
+import { getCurrentInstance, onMounted, ref, reactive, ComponentInternalInstance, shallowRef, markRaw } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import moment from 'moment'
-let currentInstance = ''
-let userInfo = reactive({ data: {} } as any)
 
-onMounted(() => {
-  currentInstance = getCurrentInstance()
+let currentInstance = '' as Data || undefined
+let userInfo = reactive({ data: {} } as any)
+const { proxy } = getCurrentInstance() as ComponentInternalInstance
+
+// const uToast = markRaw(ref<IComponent>({} as IComponent))
+onShow(() => {
+            // 这个是为了解决 ts 提示 unknown 问题 非强迫症可以写成 proxy?.$refs.uToast 
+            // 在android 不行 这个接口定义太简单 还是得写成  proxy?.$refs.uToast.show 调用
+            currentInstance = proxy?.$refs
+            
 })
 
 function test() {
@@ -87,7 +94,7 @@ async function start_answer_questions() {
   // 判断当前是否处于活动有效期
   const res = await cloud.invoke('Get-If-Active', {})
   if (!res.is_active) {
-    currentInstance.ctx.$refs.uToast.show({
+    currentInstance.uToast.show({
       title: res.tip,
       type: 'error',
       position: 'top',
@@ -97,7 +104,8 @@ async function start_answer_questions() {
   // 判断当天是否已经答过题 todo
   const today = moment().format('YYYY-MM-DD')
   if (userInfo.data.hasOwnProperty(today)) {
-	  currentInstance.ctx.$refs.uToast.show({
+    console.log(currentInstance)
+	  currentInstance.uToast.show({
 	    title: '当日已答过题，一天只能答一次哦',
 	    type: 'primary',
 	    position: 'top',
@@ -110,37 +118,48 @@ async function start_answer_questions() {
 }
 
 onLoad(async (params) => {
+  const url = window.location.href
   const userStore = useUserStore()
   userInfo.data = userStore.userInfo
   console.log('UserInfo: ', userInfo)
   // Check if have storage
   if (userInfo.data.openid && userInfo.data.openid != '') {
     // 更新 local storage
-	const { err, err_msg, data } = await cloud.invoke('get-userinfo-by-openid', { openid: userInfo.data.openid })
-	if (err) { 
-		return console.log(err_msg)
-	}
-	userInfo.data = data
-	userStore.setUserinfo(data)
+    const { err, err_msg, data } = await cloud.invoke('get-userinfo-by-openid', { openid: userInfo.data.openid })
+    if (err) { 
+      return console.log(err_msg)
+    }
+    userInfo.data = data
+    userStore.setUserinfo(data)
     // Check if redirected
   } else if (params?.code) {
-    // Get access_token by code
+    // const num1 = url.indexOf('code=')
+    // const num2 = url.indexOf('&')
+    // const code = url.substring(num1 + 5, num2)
     const code = params.code
     console.log('code: ', code)
+    // Get access_token by code
     const res = await cloud.invoke('Get-UserInfo', {
       code,
     })
     console.log(res)
     if (res.err !== 0) {
-      // get openid failed
       return
     }
-    userStore.setUserinfo(res)
-	userInfo.data = res
+    userStore.setUserinfo(res.data)
+    userInfo.data = res
   } else {
-    // redirect to wx oauth to get code
+    // if (url.indexOf('code=') == -1 ) {
+    //   const num1 = url.indexOf('?')
+    //   const num2 = url.indexOf('#')
+    //   const base = url.substring(0, num1)
+    //   const param = url.substring(num1 + 1, num2)
+    //   const raw_route = url.substring(num2 + 1, url.length - 1)
+    //   const need_url = `${base}/#${raw_route}?${param}`
+      
+    // }
     const wx_auth_url = `
-      ${wx.OAUTH_URL}?appid=${wx.APPID}&redirect_uri=${wx.Redirect_Uri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
+      ${wx.OAUTH_URL}?appid=${wx.APPID}&redirect_uri=${wx.Redirect_Uri}&response_type=code&scope=snsapi_userinfo#wechat_redirect`
     console.log(`Redirect to ${wx_auth_url}... `)
     window.location.href = wx_auth_url
   }

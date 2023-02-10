@@ -51,6 +51,7 @@
     "@dcloudio/uni-mp-toutiao": "^3.0.0-alpha-3031220220222002",
     "@dcloudio/uni-mp-weixin": "^3.0.0-alpha-3031220220222002",
     "@dcloudio/uni-quickapp-webview": "^3.0.0-alpha-3031220220222002",
+    "jweixin-module": "^1.6.0",
     "laf-client-sdk": "^0.8.13",
     "moment": "^2.29.4",
     "pinia": "^2.0.11",

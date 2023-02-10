@@ -68,10 +68,10 @@ onMounted(() => {
 
 onLoad(async (params) => {
   console.log(params)
+  userInfo.data = useUserStore().getUserInfo()
   answer_result.data = JSON.parse(decodeURIComponent(params.param))
-  console.log(answer_result)
-  const userStore = useUserStore()
-  userInfo.data = userStore.userInfo
+  console.log('answer_result', answer_result)
+  
 })
 </script>
 

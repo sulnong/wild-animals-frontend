@@ -1,9 +1,9 @@
 import { getCurrentBaseURL } from './utils/url'
-
+import * as wxsdk from 'jweixin-module'
 /**
  * HTTP 接口请求入口地址
  */
-export const API_BASE_URL = 'http://hw2u9p.sl-dev.laf.run'
+export const API_BASE_URL = 'https://hw2u9p.sl-dev.laf.run'
 
 /**
  * 当前站部署地址，主要用于授权等场景
@@ -17,8 +17,10 @@ export const DEPLOY_URL = getCurrentBaseURL()
 export const wx = {
   APPID: 'wx5aca01a0460ff1ef',
   OAUTH_URL: 'https://open.weixin.qq.com/connect/oauth2/authorize',
-  Redirect_Uri: 'http%3A%2F%2Fsl-dev.io%3A3000'
+  // Redirect_Uri: 'https%3A%2F%2Fsl-dev.io%3A3000',
+  Redirect_Uri: 'https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run',
 }
+
 
 /**
  * 构建信息
