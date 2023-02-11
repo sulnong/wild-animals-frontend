@@ -22,17 +22,25 @@
         <text class="label">耗时(秒)</text>
       </view>
     </view>
-    <view v-if="answer_result.data.is_all_correct" class="tip">
+    <view v-if="answer_result.data.is_all_correct && !is_wined && !is_raffled" class="tip">
       <text>恭喜您全部答对啦，点击下方按钮抽奖吧~</text>
     </view>
-    <view v-else class="tip">
+    <view v-if="!answer_result.data.is_all_correct" class="tip">
       <text>很遗憾没有全部答对，请明天再来~</text>
     </view>
-    <view v-if="answer_result.data.is_all_correct" class="btn-container">
+    <view v-if="show_raffle_btn" class="btn-container">
       <button class="btn" @click="raffle">抽奖</button>
     </view>
-    <!-- 弹出提示 -->
-    <u-toast ref="uToast" />
+    <view v-if="is_wined" class="tip-submit">
+      恭喜您抽中奖品：淮北市动物园门票一张。请点击下方填写信息按钮
+      填入您的姓名和手机号，便于兑奖。
+    </view>
+    <view v-if="is_raffled && !is_wined" class="tip">
+      很抱歉，您未中奖，请下次再尝试~
+    </view>
+    <view v-if="is_wined" class="btn-container">
+      <button class="btn">填写信息</button>
+    </view>
     <!-- 遮罩层演示抽奖等待 -->
     <u-mask :show="show_mask" class="mask" >
     		<view class="warp">
@@ -41,37 +49,72 @@
           正在抽奖...
     		</view>
     </u-mask>
+    <!-- 弹出提示 -->
+    <u-toast ref="uToast" />
     </view>
 </template>
 
 <script setup lang="ts">
 import { useUserStore } from '../../store/user'
-import { onLoad } from '@dcloudio/uni-app'
-// import { cloud } from '../../../src/api/cloud'
-// import { wx } from '../../config'
-import { getCurrentInstance, onMounted, ref, reactive } from 'vue'
-let currentInstance = ''
+import { onLoad, onShow, onBackPress } from '@dcloudio/uni-app'
+import { cloud } from '@/api/cloud'
+// import { wx } from '@/config'
+import { getCurrentInstance, ComponentInternalInstance, ref, reactive } from 'vue'
+
+
 let userInfo = reactive({ data: {} } as any)
 let answer_result = reactive({ data: {} as any })
 let show_mask = ref(false)
+let show_raffle_btn = ref(false) // 控制展示抽奖按钮
+let is_wined = ref(false) // 控制展示填写信息按钮
+let is_raffled = ref(false)      // 是否已抽奖
+
+let currentInstance = '' as Data || undefined
+const { proxy } = getCurrentInstance() as ComponentInternalInstance
+onShow(() => {
+  currentInstance = proxy?.$refs
+})
+
+onBackPress(() => {
+  console.log('on back press')
+  return
+})
 
 async function raffle() {
   show_mask.value = true
+  const { err, err_msg, is_win } = await cloud.invoke('raffle', { openid: userInfo.data.openid})
+  
+  show_raffle_btn.value = false
   setTimeout(() => {
-    show_mask.value = false
-  }, 2000)
+    if (err == 0 && is_win) {
+      show_mask.value = false
+      is_raffled.value = true
+      currentInstance.uToast.show({
+        title: '恭喜您中奖啦',
+        type: 'success',
+        position: 'center',
+      })
+      is_wined.value = true
+      return
+    } else {
+      show_mask.value = false
+      is_raffled.value = true
+      currentInstance.uToast.show({
+        title: '很抱歉您未中奖, 请下次再试~',
+        type: 'info',
+        position: 'top',
+        duration: 5000
+      })
+      return
+    }
+  }, 1500)
 }
 
-onMounted(() => {
-  currentInstance = getCurrentInstance()
-})
-
 onLoad(async (params) => {
-  console.log(params)
   userInfo.data = useUserStore().getUserInfo()
   answer_result.data = JSON.parse(decodeURIComponent(params.param))
   console.log('answer_result', answer_result)
-  
+  show_raffle_btn.value = answer_result.data.is_all_correct
 })
 </script>
 
@@ -120,6 +163,13 @@ onLoad(async (params) => {
     @include flex-row-center;
     font-size: 30rpx;
 	}
+  
+  .tip-submit {
+    height: 120rpx;
+    @include flex-row-center;
+    font-size: 36rpx;
+    color: #909909;
+  }
 	
 	.btn-container {
 		height: 100rpx;

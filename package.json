@@ -6,8 +6,10 @@
     "deploy:win": "scp -rv ./dist/dev/h5/  zhuo-dev:/path/to/webroot",
     "deploy:prod": "rsync -rvtP ./dist/build/h5/  zhuo-prod:/path/to/webroot",
     "dev": "npm run dev:h5",
+    "dev:test": "NODE_ENV=test-development npm run dev:h5",
     "start": "npm run serve",
     "build": "npm run build:h5",
+    "build:test": "NODE_ENV=test-production npm run build:h5 ",
     "dev:app": "uni -p app",
     "dev:custom": "uni -p",
     "dev:h5": "uni",
@@ -58,7 +60,8 @@
     "vue": "^3.2.31",
     "vue-i18n": "^9.1.9",
     "vuex": "^4.0.2",
-    "wechat-jssdk": "^5.0.8"
+    "wechat-jssdk": "^5.0.8",
+    "weixin-js-sdk": "^1.6.0"
   },
   "devDependencies": {
     "@dcloudio/types": "^2.5.17",
@@ -71,5 +74,18 @@
     "sass": "^1.58.0",
     "typescript": "^4.5.2",
     "vite": "^2.8.4"
+  },
+  "uni-app": {
+    "test-prod": {
+      "title": "测试环境build",
+      "env": {
+        "UNI_PLATFORM": "h5",
+        "APP_ID": "wx5aca01a0460ff1ef",
+        "REDIRECT_URI": "https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run"
+      },
+      "define": {
+        "CUSTOM-CONST": true
+      }
+    }
   }
 }

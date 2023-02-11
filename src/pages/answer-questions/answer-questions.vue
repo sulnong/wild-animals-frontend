@@ -52,10 +52,10 @@
 </template>
 
 <script setup lang="ts">
-import { onLoad } from '@dcloudio/uni-app'
-import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
-import { cloud } from '../../../src/api/cloud'
-import { useUserStore } from '../../store/user'
+import { onLoad, onShow } from '@dcloudio/uni-app'
+import { reactive, ref, getCurrentInstance, ComponentInternalInstance } from 'vue'
+import { cloud } from '@/api/cloud'
+import { useUserStore } from '@/store/user'
 import moment from 'moment'
 
 interface wd_option {
@@ -82,10 +82,12 @@ const time_format = 'YYYY-MM-DD hh:mm:ss'
 let start_time = ''
 let finish_time = ''
 let time_spends = 0
-let currentInstance = ''
 
-onMounted(() => {
-  currentInstance = getCurrentInstance()
+
+let currentInstance = '' as Data || undefined
+const { proxy } = getCurrentInstance() as ComponentInternalInstance
+onShow(() => {
+  currentInstance = proxy?.$refs
 })
 
 // 勾选答案
@@ -100,9 +102,10 @@ function selectOption(op_index: number) {
 // 确认答案
 function confirmSelect() {
   if (curSelect.value == -1) {
-    uni.showToast({
-      icon: 'error',
-      title: '您必须先选择答案',
+    currentInstance.uToast.show({
+      title: '您必须选择一个答案',
+      type: 'error',
+      position: 'top',
     })
     return
   }
@@ -142,7 +145,7 @@ async function nextQuestion() {
       answer_result,
     })
     // 最后一题了，这个时候跳转结算页面
-    currentInstance.ctx.$refs.uToast.show({
+    currentInstance.uToast.show({
       title: '全部答完，即将跳转结算页面',
       type: 'success',
       position: 'top',

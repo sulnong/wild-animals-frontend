@@ -17,10 +17,9 @@ export const DEPLOY_URL = getCurrentBaseURL()
 export const wx = {
   APPID: 'wx5aca01a0460ff1ef',
   OAUTH_URL: 'https://open.weixin.qq.com/connect/oauth2/authorize',
-  // Redirect_Uri: 'https%3A%2F%2Fsl-dev.io%3A3000',
-  Redirect_Uri: 'https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run',
+  REDIRECT_URI: 'https%3A%2F%2Fsl-dev.io%3A3000',
+  // REDIRECT_URI: 'https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run'
 }
-
 
 /**
  * 构建信息

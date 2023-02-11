@@ -73,7 +73,7 @@
         "title" : "",
         "devServer" : {
             "host" : "sl-dev.io",
-            "port" : 3000,
+            "port" : 5000,
             "disableHostCheck" : true,
             "https" : true
         },
