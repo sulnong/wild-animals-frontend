@@ -81,8 +81,6 @@ onShow(() => {
 
 
 async function start_answer_questions() {
-  wxjssdk.hidMenuItems()
-  return
   // 判断当前是否处于活动有效期
   const res = await cloud.invoke('Get-If-Active', {})
   if (!res.is_active) {
@@ -128,6 +126,7 @@ onLoad(async (params) => {
   const url = window.location.href
   const userStore = useUserStore()
   userInfo.data = userStore.userInfo
+  wxjssdk.hideMenuItems()
   // Check if have storage
   if (userInfo.data.openid && userInfo.data.openid != '') {
     console.log('update userinfo by openid')

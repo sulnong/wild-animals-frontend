@@ -73,9 +73,9 @@
         "title" : "",
         "devServer" : {
             "host" : "sl-dev.io",
-            "port" : 5000,
+            "port" : 80,
             "disableHostCheck" : true,
-            "https" : true
+            "https" : false
         },
         "router" : {
             "mode" : "history",
