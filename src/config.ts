@@ -15,10 +15,11 @@ export const DEPLOY_URL = getCurrentBaseURL()
  * 微信相关信息
  */
 export const wx = {
-  APPID: process.env.NODE_ENV == 'development' ? 'wx5aca01a0460ff1ef' : 'wx5aca01a0460ff1ef',
+  APPID: process.env.NODE_ENV == 'development' ? 'wx6570365231fbe051' : 'wx6570365231fbe051',
   OAUTH_URL: 'https://open.weixin.qq.com/connect/oauth2/authorize',
-  REDIRECT_URI: process.env.NODE_ENV == 'development' ? 'http%3A%2F%2Fsl-dev.io' : 'https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run'
-  REDIRECT_URI: 'https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run'
+  REDIRECT_URI: process.env.NODE_ENV == 'development' ? 
+    'http%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run' : 'https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run' // 加不加s的区别
+  // REDIRECT_URI: 'http%3A%2F%2Fsl-dev.io'
 }
 
 /**

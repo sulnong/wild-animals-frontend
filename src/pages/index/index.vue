@@ -48,8 +48,19 @@
           <text class="wd-label">我的奖品</text>
         </view>
         <view v-if="!userInfo.data.is_win" class="never-win">
-          <view class="iconfont icon-gift" style="font-size: 120rpx;"></view>
+          <view class="iconfont icon-gift" style="font-size: 80rpx;"></view>
           <text style="font-size: 40rpx;margin-top: 30rpx;">暂无中奖记录</text>
+        </view>
+        <view v-else class="wined">
+          <view class="prize">
+            <view class="iconfont icon-lvyoumenpiao" style="font-size: 40rpx;color:greenyellow"></view>
+            <text style="font-size: 40rpx;margin: 0 0 0 20rpx;">淮北市动物园门票一张</text>
+          </view>
+          <view v-if="userInfo.data.contact">
+            <view> 中奖凭据 </view>
+            <view> {{ userInfo.data.contact.name }}</view>
+            <view> {{ userInfo.data.contact.phone }}</view>
+          </view>
         </view>
       </view>
     </view>
@@ -78,7 +89,6 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance
 onShow(() => {
   currentInstance = proxy?.$refs
 })
-
 
 async function start_answer_questions() {
   // 判断当前是否处于活动有效期
@@ -122,6 +132,14 @@ async function start_answer_questions() {
   })
 }
 
+function redirectToWx() {
+  // redirect to wx auth
+  const wx_auth_url = `
+    ${wx.OAUTH_URL}?appid=${wx.APPID}&redirect_uri=${wx.REDIRECT_URI}&response_type=code&scope=snsapi_userinfo#wechat_redirect`
+  console.log(`Redirect to ${wx_auth_url}... `)
+  window.location.href = wx_auth_url
+}
+
 onLoad(async (params) => {
   const userStore = useUserStore()
   userInfo.data = userStore.userInfo
@@ -129,7 +147,7 @@ onLoad(async (params) => {
   let isWeixin=target.match(/MicroMessenger/i) == 'micromessenger' ? true : false
   
   console.log("isWeixin: ", isWeixin)
-  if (!isWeixin) alert('需在微信中打开')
+  if (!isWeixin) return alert('该活动必须在微信中参与')
   
   wxjssdk.wxconfig()
   wxjssdk.updateAppMessageShareData()
@@ -139,8 +157,13 @@ onLoad(async (params) => {
     console.log('update userinfo by openid')
     // 更新 local storage
     const { err, err_msg, data } = await cloud.invoke('get-userinfo-by-openid', { openid: userInfo.data.openid })
-    if (err) { 
-      return console.log(err_msg)
+    if (err) {
+      userStore.clearUserinfo()
+      return currentInstance.uToast.show({
+        title: err_msg,
+        type: 'error',
+        position: 'top',
+      })
     }
     userInfo.data = data
     userStore.setUserinfo(data)
@@ -160,18 +183,17 @@ onLoad(async (params) => {
     userInfo.data = data
     userStore.setUserinfo(data)
   } else {
-    // redirect to wx auth
-    const wx_auth_url = `
-      ${wx.OAUTH_URL}?appid=${wx.APPID}&redirect_uri=${wx.REDIRECT_URI}&response_type=code&scope=snsapi_userinfo#wechat_redirect`
-    console.log(`Redirect to ${wx_auth_url}... `)
-    window.location.href = wx_auth_url
+    redirectToWx()
   }
 })
 
 // const user = useUserStore()
 </script>
 
-<style lang="less">
+<style lang="scss">
+// card 与屏幕左右两侧的间距
+$card-margin-side:10rpx;
+
 .content {
   width: 100vw;
   height: 80vh;
@@ -217,11 +239,10 @@ onLoad(async (params) => {
   background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
   display: flex;
   flex-direction: column;
-
   .card-about {
     position: relative;
     top: -30rpx;
-    margin: 0 10rpx;
+    margin: 0 $card-margin-side;
     padding: 30rpx 10rpx 20rpx 30rpx;
     border-radius: 30rpx;
     background-color: white;
@@ -250,8 +271,8 @@ onLoad(async (params) => {
   }
 
   .card-gift {
-    height: 600rpx;
-    margin: 0 10rpx;
+    height: 500rpx;
+    margin: 0 $card-margin-side;
     padding: 30rpx 10rpx 20rpx 30rpx;
     border-radius: 30rpx;
     background-color: white;
@@ -273,6 +294,18 @@ onLoad(async (params) => {
       justify-content: center;
       align-items: center;
       color: #909399;
+    }
+    
+    .wined {
+      margin-top: 20rpx;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      color: #909909;
+      .prize {
+        @include flex-row-center;
+        justify-content: flex-start;
+      }
     }
   }
 }

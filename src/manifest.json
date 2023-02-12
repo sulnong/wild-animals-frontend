@@ -72,7 +72,7 @@
     "h5" : {
         "title" : "",
         "devServer" : {
-            "host" : "sl-dev.io",
+            "host" : "hw2u9p-raffle.oss.sl-dev.laf.run",
             "port" : 3000,
             "disableHostCheck" : true,
             "https" : false
