@@ -300,11 +300,13 @@ $card-margin-side:10rpx;
       margin-top: 20rpx;
       display: flex;
       flex-direction: column;
+
       justify-content: flex-start;
       color: #909909;
       .prize {
         @include flex-row-center;
         justify-content: flex-start;
+
       }
     }
   }
