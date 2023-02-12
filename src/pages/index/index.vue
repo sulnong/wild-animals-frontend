@@ -123,10 +123,17 @@ async function start_answer_questions() {
 }
 
 onLoad(async (params) => {
-  const url = window.location.href
   const userStore = useUserStore()
   userInfo.data = userStore.userInfo
-  wxjssdk.hideMenuItems()
+  let target = window.navigator.userAgent.toLowerCase()
+  let isWeixin=target.match(/MicroMessenger/i) == 'micromessenger' ? true : false
+  
+  console.log("isWeixin: ", isWeixin)
+  if (!isWeixin) alert('需在微信中打开')
+  
+  wxjssdk.wxconfig()
+  wxjssdk.updateAppMessageShareData()
+  
   // Check if have storage
   if (userInfo.data.openid && userInfo.data.openid != '') {
     console.log('update userinfo by openid')

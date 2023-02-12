@@ -54,20 +54,12 @@
 <script setup lang="ts">
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { reactive, ref, getCurrentInstance, ComponentInternalInstance } from 'vue'
+import moment from 'moment'
 import { cloud } from '@/api/cloud'
 import { useUserStore } from '@/store/user'
-import moment from 'moment'
+import { wd_option, wd_questions } from '@/utils/types'
+import wxjssdk from '@/utils/wxsdk'
 
-interface wd_option {
-  label: String
-  content: String
-}
-interface wd_questions {
-  type: String
-  content: String
-  options: [wd_option]
-  answer: wd_option
-}
 
 let questions = ref<[wd_questions]>([] as any) // 所有问题, 共 5 道题
 let curIndex = ref(0) // 当前题号
@@ -164,6 +156,10 @@ async function nextQuestion() {
 }
 
 onLoad(async () => {
+  // 非首页禁止分享
+  await wxjssdk.wxconfig()
+  wxjssdk.hideMenuItems()
+  // 获取答题内容
   const { err, err_msg, data } = await cloud.invoke('Get-Questions', {})
   if (err != 0) {
     uni.showToast({

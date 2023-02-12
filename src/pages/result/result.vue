@@ -55,12 +55,11 @@
 </template>
 
 <script setup lang="ts">
-import { useUserStore } from '../../store/user'
 import { onLoad, onShow, onBackPress } from '@dcloudio/uni-app'
-import { cloud } from '@/api/cloud'
-// import { wx } from '@/config'
 import { getCurrentInstance, ComponentInternalInstance, ref, reactive } from 'vue'
-
+import { useUserStore } from '@/store/user'
+import { cloud } from '@/api/cloud'
+import wxjssdk from '@/utils/wxsdk'
 
 let userInfo = reactive({ data: {} } as any)
 let answer_result = reactive({ data: {} as any })
@@ -114,8 +113,11 @@ onLoad(async (params) => {
   userInfo.data = useUserStore().getUserInfo()
   answer_result.data = JSON.parse(decodeURIComponent(params.param))
   console.log('answer_result', answer_result)
+  wxjssdk.wxconfig()
+  wxjssdk.hideMenuItems()
   show_raffle_btn.value = answer_result.data.is_all_correct
 })
+
 </script>
 
 <style lang="scss">

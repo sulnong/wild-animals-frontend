@@ -13,6 +13,9 @@ export default defineConfig({
         rewrite: path => path.replace(new RegExp('^' + process.env.VUE_APP_BASE_API), '')
       },
     }
+  },
+  define: {
+    'process.env.MY_ENV': JSON.stringify('helloworld')
   }
 
 })

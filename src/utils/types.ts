@@ -16,3 +16,15 @@ export interface AppFunctionResult {
   error?: string
   data?: any
 }
+
+export interface wd_option {
+  label: String
+  content: String
+}
+
+export interface wd_questions {
+  type: String
+  content: String
+  options: [wd_option]
+  answer: wd_option
+}
