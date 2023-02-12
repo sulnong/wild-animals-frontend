@@ -43,3 +43,14 @@ export function showLoading(message = '加载中') {
 export function hideLoading() {
   uni.hideLoading()
 }
+
+/**
+ * uview ui toast
+ * @param {string} type - error' || 'sucess' || 'primary'
+ * @param {string} message - toast information
+ * @param {string} position: 'top' || 'center' || 'bottom'
+
+ */
+export function toast(instance: any, type: string, message: string, position: string) {
+  return instance.show({title: message, type, position})
+}

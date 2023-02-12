@@ -1,55 +1,20 @@
 
-import { AppFunctionResult, UserInfo } from '../utils/types'
-import { clearUserInfo } from '../utils'
+// import { AppFunctionResult, UserInfo } from '@/utils/types'
 import { cloud } from './cloud'
 
-export interface LoginResult extends AppFunctionResult {
-  data: {
-    access_token: string
-    uid: string
-    expire: number
-    user: UserInfo
-  }
+export async function getUserinfoByOpenid(openid: string) {
+  return await cloud.invoke('wd-get-userinfo-by-openid', { openid })
 }
 
+export async function getUserinfoByCode(code: string) {
+  return await cloud.invoke('wx-get-userinfo-by-code', { code })
+}
 /**
- * 快速登录
- * @param phone 手机号
- * @param code 短信验证码
+ * @deprected use get-userinfo-by-code instead
  */
-export async function login(phone: string, code: number) {
-  return await cloud.invokeFunction<LoginResult>('app-quick-login', {
-    username: phone,
-    code,
-  })
+export async function wxCode2Session(code: string) {
+  return await cloud.invoke('wx-code2session', { code })
 }
 
-/**
- * 密码登录
- * @param phone 手机号
- * @param password 密码
- */
-export async function passwordLogin(phone: string, password: string) {
-  return await cloud.invokeFunction<LoginResult>('app-login-password', {
-    username: phone,
-    password,
-  })
-}
 
-/**
- * 退出登录
- */
-export function logout() {
-  clearUserInfo()
-}
 
-/**
- * 发送登录短信验证码
- * @param phone
- * @returns
- */
-export async function sendLoginSmsCode(phone: string) {
-  return await cloud.invokeFunction<AppFunctionResult>('send-login-sms', {
-    phone,
-  })
-}

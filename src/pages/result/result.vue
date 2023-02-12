@@ -1,8 +1,8 @@
 <template>
   <view class="main-container">
     <view class="avatar-container">
-      <u-avatar :src="userInfo.data.headimgurl" size="large"></u-avatar>
-      <text style="margin-left: 20rpx;">你好， {{ userInfo.data.nickname }}</text>
+      <!-- <u-avatar :src="userInfo.data.headimgurl" size="large"></u-avatar>
+      <text style="margin-left: 20rpx;">你好， {{ userInfo.data.nickname }}</text> -->
     </view>
     <view class="middle">
       <view class="result-wrap">
@@ -44,22 +44,23 @@
     <!-- 遮罩层演示抽奖等待 -->
     <u-mask :show="show_mask" class="mask" >
     		<view class="warp">
-    			<view class="rect" @tap.stop></view>
+    			<view class="rect" @tap.stop />
           <u-loading :show="show_mask" mode="circle" color="#2979ff" size="88"></u-loading>
-          正在抽奖...
-    		</view>
+          <text>正在抽奖...</text>
+        </view>
     </u-mask>
     <!-- 弹出提示 -->
     <u-toast ref="uToast" />
-    </view>
+    <!-- 填写中奖信息: 姓名 和 联系方式 -->
+  </view>
 </template>
 
 <script setup lang="ts">
 import { onLoad, onShow, onBackPress } from '@dcloudio/uni-app'
 import { getCurrentInstance, ComponentInternalInstance, ref, reactive } from 'vue'
 import { useUserStore } from '@/store/user'
-import { cloud } from '@/api/cloud'
-import wxjssdk from '@/utils/wxsdk'
+import { wdRaffle, wdSubmitContact } from '@/api/wild-animals'
+import { toast } from '@/utils/show'
 
 let userInfo = reactive({ data: {} } as any)
 let answer_result = reactive({ data: {} as any })
@@ -81,8 +82,7 @@ onBackPress(() => {
 
 async function raffle() {
   show_mask.value = true
-  const { err, err_msg, is_win } = await cloud.invoke('raffle', { openid: userInfo.data.openid})
-  
+  const { err, is_win } = await wdRaffle()
   show_raffle_btn.value = false
   setTimeout(() => {
     if (err == 0 && is_win) {
@@ -92,6 +92,7 @@ async function raffle() {
         title: '恭喜您中奖啦',
         type: 'success',
         position: 'center',
+        duration: 5000
       })
       is_wined.value = true
       return
@@ -109,12 +110,10 @@ async function raffle() {
   }, 1500)
 }
 
-onLoad(async (params) => {
+onLoad(async (params : any) => {
   userInfo.data = useUserStore().getUserInfo()
   answer_result.data = JSON.parse(decodeURIComponent(params.param))
   console.log('answer_result', answer_result)
-  wxjssdk.wxconfig()
-  wxjssdk.hideMenuItems()
   show_raffle_btn.value = answer_result.data.is_all_correct
 })
 
@@ -124,7 +123,7 @@ onLoad(async (params) => {
 .main-container {
 	width: 100vw;
 	height: 100vh;
-	background-image: url('../../static/background.jpg');
+	background-image: url('https://la8qzk-www.oss.sl-dev.laf.run/background.jpg');
 	background-size: 100% 100vh;
 	background-position: top;
 	background-repeat: no-repeat;
@@ -139,8 +138,8 @@ onLoad(async (params) => {
 	}
 	
 	.middle {
-		height: 200rpx;
-    margin: 20rpx 20rpx;
+		height: 260rpx;
+    margin: 40rpx 40rpx;
     padding: 0 35rpx;
     border-radius: 25rpx;
     background-image: linear-gradient(to top, #37ecba 0%, #72afd3 100%);
@@ -185,8 +184,13 @@ onLoad(async (params) => {
   
   .mask {
     @include flex-column-center;
+    width: 100vw;
+    height: 100vh;
     .warp {
         @include flex-column-center;
+        .rect {
+          @include flex-column-center;
+        }
     }
   }
 }

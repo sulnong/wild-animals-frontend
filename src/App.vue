@@ -14,5 +14,5 @@ onHide(() => {
 </script>
 <style lang="scss">
 @import './uni_modules/vk-uview-ui/index.scss';
-@import url('./static/fonts/iconfont.css');
+@import url('common/iconfont.css');
 </style>

@@ -1,24 +1,16 @@
-import { getCurrentBaseURL } from './utils/url'
-
 /**
  * HTTP 接口请求入口地址
  */
-export const API_BASE_URL = 'https://hw2u9p.sl-dev.laf.run'
+export const API_BASE_URL = 'https://la8qzk.sl-dev.laf.run'
 
-/**
- * 当前站部署地址，主要用于授权等场景
- */
-export const DEPLOY_URL = getCurrentBaseURL()
 
 
 /**
  * 微信相关信息
  */
-export const wx = {
-  APPID: process.env.NODE_ENV == 'development' ? 'wx5aca01a0460ff1ef' : 'wx5aca01a0460ff1ef',
+export const microprogramwild = {
+  APPID: 'wxeef2e7afd1ca4f7f',
   OAUTH_URL: 'https://open.weixin.qq.com/connect/oauth2/authorize',
-  REDIRECT_URI: process.env.NODE_ENV == 'development' ? 'http%3A%2F%2Fsl-dev.io' : 'https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run'
-  REDIRECT_URI: 'https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run'
 }
 
 /**

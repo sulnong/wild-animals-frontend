@@ -1,5 +1,5 @@
 {
-    "name" : "淮北市世界野生动植物日抽奖答题",
+    "name" : "答题抽奖",
     "appid" : "__UNI__47C9DE7",
     "description" : "用于淮北市林业局举办世界野生动植物日主题宣传活动中的抽奖答题环节",
     "versionName" : "1.0.0",
@@ -50,11 +50,15 @@
     "quickapp" : {},
     /* 小程序特有相关 */
     "mp-weixin" : {
-        "appid" : "",
+        "appid" : "wxeef2e7afd1ca4f7f",
         "setting" : {
-            "urlCheck" : false
+            "urlCheck" : false,
+            "minified" : true
         },
-        "usingComponents" : true
+        "usingComponents" : true,
+        "window" : {
+            "initialRenderingCache" : "static"
+        }
     },
     "mp-alipay" : {
         "usingComponents" : true

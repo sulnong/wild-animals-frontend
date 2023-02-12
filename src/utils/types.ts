@@ -28,3 +28,8 @@ export interface wd_questions {
   options: [wd_option]
   answer: wd_option
 }
+
+export interface wd_contact {
+  name: String
+  phone: String
+}

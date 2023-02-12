@@ -1,8 +1,8 @@
 <template>
   <view class="container">
     <view class="avatar-container">
-      <u-avatar :src="userInfo.headimgurl" size="large"></u-avatar>
-      <text style="margin-left: 20rpx;">你好， {{ userInfo.nickname }}</text>
+      <!-- <u-avatar :src="userInfo.headimgurl" size="large"></u-avatar>
+      <text style="margin-left: 20rpx;">你好， {{ userInfo.nickname }}</text> -->
     </view>
     <view
       v-for="(item, index) in questions"
@@ -36,7 +36,7 @@
       <button v-else @click="nextQuestion" class="btn-next">下一题</button>
     </view>
     <view
-      v-show="ifShowResult"
+      v-if="ifShowResult"
       class="result"
       :class="isCorrect ? 'result-success' : 'result-error'"
     >
@@ -55,22 +55,20 @@
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { reactive, ref, getCurrentInstance, ComponentInternalInstance } from 'vue'
 import moment from 'moment'
-import { cloud } from '@/api/cloud'
-import { useUserStore } from '@/store/user'
 import { wd_option, wd_questions } from '@/utils/types'
-import wxjssdk from '@/utils/wxsdk'
+import { wdGetQuestions, wdUploadResults } from '@/api/wild-animals'
+import { toast } from '@/utils/show'
 
-
+const TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 let questions = ref<[wd_questions]>([] as any) // 所有问题, 共 5 道题
 let curIndex = ref(0) // 当前题号
-let curQuestion = reactive({ data: {} }) // 当前问题
+let curQuestion = reactive({ data: {} } as any) // 当前问题
 let curSelect = ref(-1) // 当前选择的选项编号
 let curSelectOption = reactive<wd_option>({} as any) // 当前选项
 let ifShowResult = ref(false) // 控制是否展示答题结果, 用于确认按钮之后
 let isCorrect = ref(true) // 判断是否答对
 let correctNums = ref(0) // 统计总共答对了几道题
-let userInfo = ref(useUserStore().getUserInfo())
-const time_format = 'YYYY-MM-DD hh:mm:ss'
+// let userInfo = ref(useUserStore().getUserInfo())
 let start_time = ''
 let finish_time = ''
 let time_spends = 0
@@ -82,31 +80,37 @@ onShow(() => {
   currentInstance = proxy?.$refs
 })
 
+onLoad(async () => {
+  // 获取答题内容
+  const { err, data } = await wdGetQuestions()
+  if (err != 0) {
+    toast(currentInstance.uToast, 'error', '获取问题列表错误，请稍后重试...', 'top')
+  }
+  questions.value = data
+  curQuestion.data = data[0]
+  console.log('questions: ', questions.value)
+  start_time = moment().format(TIME_FORMAT)
+})
+
 // 勾选答案
 function selectOption(op_index: number) {
   if (ifShowResult.value) {
     return
   }
   curSelect.value = op_index
-  curSelectOption = curQuestion.data.options[op_index]
+  let curOptions = curQuestion.data.options
+  curSelectOption = curOptions[op_index]
 }
 
 // 确认答案
 function confirmSelect() {
-  if (curSelect.value == -1) {
-    currentInstance.uToast.show({
-      title: '您必须选择一个答案',
-      type: 'error',
-      position: 'top',
-    })
-    return
-  }
+  if (curSelect.value == -1) return toast(currentInstance.uToast, 'error', '您必须选择一个答案', 'top') 
   ifShowResult.value = true
   // 最后一题点击确认
   if (curIndex.value == 4) {
-    finish_time = moment().format(time_format)
-    time_spends = moment(finish_time, time_format).diff(
-      moment(start_time, time_format),
+    finish_time = moment().format(TIME_FORMAT)
+    time_spends = moment(finish_time, TIME_FORMAT).diff(
+      moment(start_time, TIME_FORMAT),
       'seconds'
     )
   }
@@ -132,10 +136,11 @@ async function nextQuestion() {
       is_all_correct: correctNums.value == 5,
       correctNums: correctNums.value,
     }
-    await cloud.invoke('upload-answer-results', {
-      openid: userInfo.value.openid,
-      answer_result,
-    })
+    await wdUploadResults(answer_result)
+    // await cloud.invoke('upload-answer-results', {
+    //   openid: userInfo.value.openid,
+    //   answer_result,
+    // })
     // 最后一题了，这个时候跳转结算页面
     currentInstance.uToast.show({
       title: '全部答完，即将跳转结算页面',
@@ -155,32 +160,13 @@ async function nextQuestion() {
   }
 }
 
-onLoad(async () => {
-  // 非首页禁止分享
-  await wxjssdk.wxconfig()
-  wxjssdk.hideMenuItems()
-  // 获取答题内容
-  const { err, err_msg, data } = await cloud.invoke('Get-Questions', {})
-  if (err != 0) {
-    uni.showToast({
-      icon: 'error',
-      duration: 2000,
-      title: 'Get questions failed.',
-    })
-    return
-  }
-  questions.value = data
-  curQuestion.data = data[0]
-  console.log('questions: ', questions.value)
-  start_time = moment().format('YYYY-MM-DD hh:mm:ss')
-})
 </script>
 
 <style lang="less">
 .container {
   width: 100vw;
   height: 100vh;
-  background-image: url('../../static/background.jpeg');
+  background-image: url('https://la8qzk-www.oss.sl-dev.laf.run/background.jpeg');
   background-size: 100% 100vh;
   background-position: top;
   background-repeat: no-repeat;
@@ -188,6 +174,7 @@ onLoad(async () => {
   display: flex;
   flex-direction: column;
   .avatar-container {
+    height: 10vh;
     margin: 60rpx 0 30rpx 60rpx;
     font-size: 40rpx;
     display: flex;

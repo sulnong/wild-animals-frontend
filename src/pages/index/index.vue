@@ -1,13 +1,12 @@
 <template>
   <view>
     <view class="content">
-      <!-- <view class="top-area">
-        <u-icon name="info-circle" size="60"></u-icon>
-        <text class="text-explain" @click="go_to_about">活动说明</text>
-      </view> -->
       <view class="bottom-area">
         <button class="btn-answer" @click="start_answer_questions">
           开始答题
+        </button>
+        <button class="btn-answer" @click="test">
+          测试弹框
         </button>
       </view>
     </view>
@@ -56,33 +55,72 @@
 
     <view class="bottom-fixed"></view>
     <u-toast ref="uToast" />
+    <u-modal v-model="showContactModal" 
+      title="填写中奖信息" 
+      negative-top="450rpx" 
+      width="90%" 
+      border-radius="30" 
+      :title-style="{color: '#2979ff'}">
+      <view class="slot-content">
+        <view class="tip"> 请填写姓名和手机号，作为兑换奖品的凭证</view>
+        <u-form :model="contactForm" ref="winnerContactForm" label-width="150" :label-style="{color: '#909909'}">
+          <u-form-item label="姓名" prop="name" required="">
+            <u-input v-model="contactForm.name" type="text" placeholder="请输入姓名" border/>
+            </u-form-item>
+          <u-form-item label="手机号" prop="phone" required>
+            <u-input v-model="contactForm.phone" type="number" placeholder="请输入手机号" border/>
+            </u-form-item>
+        </u-form>
+      </view>
+    </u-modal>
   </view>
 </template>
 
 <script setup lang="ts">
 
-import { onLoad } from '@dcloudio/uni-app'
-import { onShow } from '@dcloudio/uni-app'
-import { getCurrentInstance, reactive, ComponentInternalInstance } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
+import { getCurrentInstance, reactive, ComponentInternalInstance, ref } from 'vue'
 import { useUserStore } from '@/store/user'
-import { cloud } from '@/api/cloud'
-import { wx } from '@/config'
-import wxjssdk from '@/utils/wxsdk'
-
 import moment from 'moment'
+import { wdGetActive } from '@/api/wild-animals'
+import { getUserinfoByOpenid, getUserinfoByCode } from '@/api/user'
+import { toast } from '@/utils/show'
+
+let showContactModal = ref(false)
+let contactForm = reactive({
+  name: '',
+  phone: ''
+})
+let formRules = reactive({
+  name: [{ 
+    required: true, 
+    message: '请输入姓名', 
+    // 可以单个或者同时写两个触发验证方式 
+    trigger: ['blur'] }],
+  phone: [{
+    required: true,
+    min: 11,
+    max: 11,
+    message: '请输入11位手机号', 
+    trigger: 'blur' }]
+})
+function test() {
+  showContactModal.value = true
+}
 
 let userInfo = reactive({ data: {} } as any)
-
 let currentInstance = '' as Data || undefined
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
 onShow(() => {
   currentInstance = proxy?.$refs
+  currentInstance.winnerContactForm.setRules(formRules);
 })
 
-
 async function start_answer_questions() {
+  console.log('userinfo: ', userInfo.data)
   // 判断当前是否处于活动有效期
-  const res = await cloud.invoke('Get-If-Active', {})
+  const res = await wdGetActive()
+  console.log(res)
   if (!res.is_active) {
     currentInstance.uToast.show({
       title: res.tip,
@@ -95,15 +133,8 @@ async function start_answer_questions() {
   
   // 判断当天是否已经答过题
   const today = moment().format('YYYY-MM-DD')
-  if (userInfo.data.hasOwnProperty(today)) {
-	  currentInstance.uToast.show({
-	    title: '当日已答过题，一天只能答一次哦',
-	    type: 'primary',
-	    position: 'top',
-	  })
-	  return
-  }
-  console.log('2. User have not answerd at ', today)
+  // if (userInfo.data.hasOwnProperty(today)) return toast(currentInstance.uToast, 'primary', '当日已答过题，一天只能答一次哦', 'top')
+  // console.log('2. User have not answerd at ', today)
   
   // 判断用户是否已授权
   console.log('userInfo: ', userInfo.data)
@@ -124,58 +155,40 @@ async function start_answer_questions() {
 
 onLoad(async (params) => {
   const userStore = useUserStore()
-  userInfo.data = userStore.userInfo
-  let target = window.navigator.userAgent.toLowerCase()
-  let isWeixin=target.match(/MicroMessenger/i) == 'micromessenger' ? true : false
-  
-  console.log("isWeixin: ", isWeixin)
-  if (!isWeixin) alert('需在微信中打开')
-  
-  wxjssdk.wxconfig()
-  wxjssdk.updateAppMessageShareData()
-  
+  userInfo.data = userStore.getUserInfo() 
   // Check if have storage
   if (userInfo.data.openid && userInfo.data.openid != '') {
-    console.log('update userinfo by openid')
+    const openid = userInfo.data.openid
+    console.log('Update userinfo by openid: ', openid)
+    const { err, err_msg, data } = await getUserinfoByOpenid(openid)
+    if (err) return console.log(err_msg) 
     // 更新 local storage
-    const { err, err_msg, data } = await cloud.invoke('get-userinfo-by-openid', { openid: userInfo.data.openid })
-    if (err) { 
-      return console.log(err_msg)
-    }
     userInfo.data = data
     userStore.setUserinfo(data)
-    // Check if redirected
-  } else if (params?.code) {
-    const code = params.code
-    console.log('code: ', code)
-    // Get access_token by code
-    const { err, err_msg, data } = await cloud.invoke('Get-UserInfo', { code })
-    if (err) {
-      return currentInstance.uToast.show({
-        title: '获取用户信息失败，请退出后重试',
-        type: 'primary',
-        position: 'top',
-      })
-    }
-    userInfo.data = data
-    userStore.setUserinfo(data)
-  } else {
-    // redirect to wx auth
-    const wx_auth_url = `
-      ${wx.OAUTH_URL}?appid=${wx.APPID}&redirect_uri=${wx.REDIRECT_URI}&response_type=code&scope=snsapi_userinfo#wechat_redirect`
-    console.log(`Redirect to ${wx_auth_url}... `)
-    window.location.href = wx_auth_url
+    return
   }
+  // start login and ger userinfo
+  const loginRes = await wx.login()
+  // login faild
+  if (!loginRes.code) {
+    toast(currentInstance.uToast, 'error', 'wx.login() error', 'top')
+    return console.log('Call wx.login() error: ', loginRes.errMsg)
+  }
+  // get userinfo by code - just openid can got...
+  const { err, err_msg, user } = await getUserinfoByCode(loginRes.code)
+  if (err) return console.log(err_msg)
+  // set userinfo to storage
+  userInfo.data = user
+  userStore.setUserinfo(user)
 })
 
-// const user = useUserStore()
 </script>
 
 <style lang="less">
 .content {
   width: 100vw;
   height: 80vh;
-  background-image: url('../../static/background.jpeg');
+  background-image: url('https://la8qzk-www.oss.sl-dev.laf.run/background.jpeg');
   background-size: 100% 80vh;
   // background-size: cover;
   background-position: top;
@@ -217,7 +230,7 @@ onLoad(async (params) => {
   background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
   display: flex;
   flex-direction: column;
-
+  font-family: "阿里妈妈数黑体 Bold";
   .card-about {
     position: relative;
     top: -30rpx;
@@ -284,5 +297,13 @@ onLoad(async (params) => {
   height: 80rpx;
   background-image: linear-gradient(to right, #43e97b 0%, #38f9d7 100%);
   opacity: 0.6;
+}
+
+.slot-content {
+  padding: 0 30rpx;
+  .tip {
+    margin: 20rpx 0rpx;
+    color: #909909;
+  }
 }
 </style>
