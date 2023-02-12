@@ -19,7 +19,11 @@ export const useUserStore = defineStore('user', () => {
     function setUserinfo(userInfo: UserInfo) {
       uni.setStorageSync('user', userInfo)
     }
+    
+    function clearUserinfo() {
+      uni.removeStorageSync('user')
+    }
 
-    return { userInfo, getUserInfo, setUserinfo }
+    return { userInfo, getUserInfo, setUserinfo, clearUserinfo }
 })
 
