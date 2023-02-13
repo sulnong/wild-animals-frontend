@@ -8,7 +8,7 @@
       v-for="(item, index) in questions"
       :key="index"
       v-show="index == curIndex"
-      class="question-container"
+      class="question-container animate__animated animate__pulse"
     >
       <view class="question-content">
         {{ index + 1 }}. {{ '  ' + item.content }}
@@ -180,7 +180,7 @@ onLoad(async () => {
 .container {
   width: 100vw;
   height: 100vh;
-  background-image: url('../../static/background.jpeg');
+  background-image: url('/static/background.png');
   background-size: 100% 100vh;
   background-position: top;
   background-repeat: no-repeat;

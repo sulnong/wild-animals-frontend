@@ -2,6 +2,7 @@ import { createSSRApp } from "vue"
 import { createPinia } from 'pinia'
 import App from "./App.vue"
 import uView from './uni_modules/vk-uview-ui'
+import 'animate.css'
 
 export function createApp() {
   const app = createSSRApp(App)

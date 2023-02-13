@@ -4,6 +4,7 @@ const kToken = 'token'
 const kTokenExpire = 'token_expire'
 const kUserInfo = 'user_info'
 
+
 /**
  * @param token
  * @param expire 过期时间，时间戳，秒

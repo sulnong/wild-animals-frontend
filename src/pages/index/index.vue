@@ -6,7 +6,7 @@
         <text class="text-explain" @click="go_to_about">活动说明</text>
       </view> -->
       <view class="bottom-area">
-        <button class="btn-answer" @click="start_answer_questions">
+        <button class="btn-answer animate__animated animate__fadeInTopLeft" @click="start_answer_questions">
           开始答题
         </button>
       </view>
@@ -78,54 +78,57 @@ import { getCurrentInstance, reactive, ComponentInternalInstance } from 'vue'
 import { useUserStore } from '@/store/user'
 import { cloud } from '@/api/cloud'
 import { wx } from '@/config'
+import { wdGetSubsribe, wdGetActive, wdGetConfig, wdToast } from '@/api/wild-animals'
 import wxjssdk from '@/utils/wxsdk'
 
 import moment from 'moment'
 
 let userInfo = reactive({ data: {} } as any)
+let globalConfig = reactive({data: {} }as any)
 
 let currentInstance = '' as Data || undefined
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
-onShow(() => {
+
+onShow(async () => {
   currentInstance = proxy?.$refs
+  await wdGetConfig()
+  globalConfig.data = useUserStore().getConfig()
 })
 
 async function start_answer_questions() {
-  // 判断当前是否处于活动有效期
-  const res = await cloud.invoke('Get-If-Active', {})
-  if (!res.is_active) {
-    currentInstance.uToast.show({
-      title: res.tip,
-      type: 'error',
-      position: 'top',
+  let config = globalConfig.data
+  let { active, isNeedSubscribe, isSecret } = config
+  console.log('config: ', config)
+  // 0. secret
+  if (isSecret) {
+    return uni.redirectTo({
+      url: '/pages/answer-questions/answer-questions',
     })
-    return
+  }
+  // 1. 判断当前是否处于活动有效期
+  if (!active.is_active) {
+    return wdToast(currentInstance.uToast, active.tip, 'error')
   }
   console.log('1. Acitivity enabled: true')
-  
-  // 判断当天是否已经答过题
-  const today = moment().format('YYYY-MM-DD')
-  if (userInfo.data.hasOwnProperty(today)) {
-	  currentInstance.uToast.show({
-	    title: '当日已答过题，一天只能答一次哦',
-	    type: 'primary',
-	    position: 'top',
-	  })
-	  return
+  // 2. 判断用户是否关注公众号
+  if (isNeedSubscribe) {
+    const { err, subscribe } = await wdGetSubsribe(userInfo.data.openid)
+    if (!err && subscribe == 0) {
+      return wdToast(currentInstance.uToast, '您需要关注淮北林业公众号后方可答题')
+    }
   }
-  console.log('2. User have not answerd at ', today)
-  
-  // 判断用户是否已授权
+  // 3.判断用户是否已授权
   console.log('userInfo: ', userInfo.data)
   if (!userInfo.data.openid) {
-    console.log('3. Get user info success: false')
-    currentInstance.uToast.show({
-      title: '您必须授权才能答题~',
-      type: 'primary',
-      position: 'top',
-    })
-    return
+    return wdToast(currentInstance.uToast, '您必须授权才能答题~')
   }
+  console.log('2. User have authorized.')
+  // 4. 判断用户当天是否已经答过题
+  const today = moment().format('YYYY-MM-DD')
+  if (userInfo.data.hasOwnProperty(today)) {
+    return wdToast(currentInstance.uToast, '当日已答过题，一天只能答一次哦')
+  }
+  console.log('3. User have not answerd at ', today)
   console.log('Everything correct, start answer...')
   uni.redirectTo({
     url: '/pages/answer-questions/answer-questions',
@@ -158,12 +161,8 @@ onLoad(async (params) => {
     // 更新 local storage
     const { err, err_msg, data } = await cloud.invoke('get-userinfo-by-openid', { openid: userInfo.data.openid })
     if (err) {
-      userStore.clearUserinfo()
-      return currentInstance.uToast.show({
-        title: err_msg,
-        type: 'error',
-        position: 'top',
-      })
+      userStore.clearUserinfo() // 清除本地缓存
+      return wdToast(currentInstance.uToast, '获取用户信息失败，请重新尝试', 'error')
     }
     userInfo.data = data
     userStore.setUserinfo(data)
@@ -174,11 +173,7 @@ onLoad(async (params) => {
     // Get access_token by code
     const { err, err_msg, data } = await cloud.invoke('Get-UserInfo', { code })
     if (err) {
-      return currentInstance.uToast.show({
-        title: '获取用户信息失败，请退出后重试',
-        type: 'primary',
-        position: 'top',
-      })
+      return wdToast(currentInstance.uToast, '获取用户信息失败，请退出后重试', 'error')
     }
     userInfo.data = data
     userStore.setUserinfo(data)
@@ -197,8 +192,8 @@ $card-margin-side:10rpx;
 .content {
   width: 100vw;
   height: 80vh;
-  background-image: url('../../static/background.jpeg');
-  background-size: 100% 80vh;
+  background-image: url('/static/background.png');
+  background-size: 100% 95vh;
   // background-size: cover;
   background-position: top;
   background-repeat: no-repeat;
@@ -222,15 +217,20 @@ $card-margin-side:10rpx;
   }
 
   .bottom-area {
-    height: 15vh;
+    height: 30vh;
     flex-direction: row;
     justify-content: center;
+    position: relative;
 
     .btn-answer {
-      width: 400rpx;
+      position: absolute;
+      bottom: 300rpx;
+      right: 20rpx;
+      width: 300rpx;
       height: 100rpx;
-      background-color: royalblue;
-      color: white;
+      @include flex-row-center;
+      background-image: url('/static/start-btn-background.png');
+      color: #115A6A;
     }
   }
 }
