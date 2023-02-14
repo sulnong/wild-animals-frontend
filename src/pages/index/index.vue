@@ -1,15 +1,15 @@
 <template>
   <view>
     <view class="content">
-      <!-- <view class="top-area">
-        <u-icon name="info-circle" size="60"></u-icon>
-        <text class="text-explain" @click="go_to_about">活动说明</text>
-      </view> -->
       <view class="bottom-area">
         <button class="btn-answer animate__animated animate__fadeInTopLeft" @click="start_answer_questions">
           开始答题
         </button>
+		 <view class="activity-stastics">
+			已有 <text style="color: #115A6A;font-weight: bold;">{{ globalConfig.data.totalUserNum }}</text> 人参与
+		 </view>
       </view>
+	 
     </view>
     <view class="activity-area">
       <view class="card-about">
@@ -56,10 +56,10 @@
             <view class="iconfont icon-lvyoumenpiao" style="font-size: 40rpx;color:greenyellow"></view>
             <text style="font-size: 40rpx;margin: 0 0 0 20rpx;">淮北市动物园门票一张</text>
           </view>
-          <view v-if="userInfo.data.contact">
-            <view> 中奖凭据 </view>
-            <view> {{ userInfo.data.contact.name }}</view>
-            <view> {{ userInfo.data.contact.phone }}</view>
+          <view v-if="userInfo.data.contact" class="prize-contact">
+            <view class="label"> 兑奖凭据 </view>
+            <view class="text"> {{ userInfo.data.contact.name }}   {{ userInfo.data.contact.phone }} </view>
+            <u-line borderStyle="dashed" color="#909399"></u-line>
           </view>
         </view>
       </view>
@@ -78,7 +78,7 @@ import { getCurrentInstance, reactive, ComponentInternalInstance } from 'vue'
 import { useUserStore } from '@/store/user'
 import { cloud } from '@/api/cloud'
 import { wx } from '@/config'
-import { wdGetSubsribe, wdGetActive, wdGetConfig, wdToast } from '@/api/wild-animals'
+import { wdGetSubsribe, wdGetConfig, wdGetLocation, wdToast } from '@/api/wild-animals'
 import wxjssdk from '@/utils/wxsdk'
 
 import moment from 'moment'
@@ -146,16 +146,20 @@ function redirectToWx() {
 onLoad(async (params) => {
   const userStore = useUserStore()
   userInfo.data = userStore.userInfo
+  
+  // 1. Check 用户环境
   let target = window.navigator.userAgent.toLowerCase()
   let isWeixin=target.match(/MicroMessenger/i) == 'micromessenger' ? true : false
+  if (!isWeixin) { return alert('该活动必须在微信中参与') }
   
-  console.log("isWeixin: ", isWeixin)
-  if (!isWeixin) return alert('该活动必须在微信中参与')
+  // 2. 判断用户所在位置 - 仅限淮北地区参与
+  const { err, ad_info } = await wdGetLocation()
+  // 该接口为免费services API，可能失败，这时候就不处理
+  // 仅当获取到用户位置且不为淮北市时执行
+  if (!err) console.log('ad_info: ', ad_info)
+  if (!err && ad_info.city != '淮北市') { return alert('该活动仅限淮北地区参与') }
   
-  wxjssdk.wxconfig()
-  wxjssdk.updateAppMessageShareData()
-  
-  // Check if have storage
+  // 3. 检测本地缓存: 是否存在openid且不为控
   if (userInfo.data.openid && userInfo.data.openid != '') {
     console.log('update userinfo by openid')
     // 更新 local storage
@@ -166,7 +170,7 @@ onLoad(async (params) => {
     }
     userInfo.data = data
     userStore.setUserinfo(data)
-    // Check if redirected
+  // 4. 检测是否为微信认证回跳页面
   } else if (params?.code) {
     const code = params.code
     console.log('code: ', code)
@@ -202,20 +206,6 @@ $card-margin-side:10rpx;
   flex-direction: column;
   justify-content: flex-end;
 
-  .top-area {
-    padding: 10px 10px;
-    height: 15vh;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: flex-start;
-
-    .text-explain {
-      margin-left: 15rpx;
-      font-size: 40rpx;
-    }
-  }
-
   .bottom-area {
     height: 30vh;
     flex-direction: row;
@@ -232,6 +222,15 @@ $card-margin-side:10rpx;
       background-image: url('/static/start-btn-background.png');
       color: #115A6A;
     }
+	
+	.activity-stastics {
+		// border: 2px solid red;
+		position: absolute;
+		bottom: 10rpx;
+		right: 80rpx;
+		width: 300rpx;
+		height: 100rpx;
+	}
   }
 }
 
@@ -306,9 +305,21 @@ $card-margin-side:10rpx;
       .prize {
         @include flex-row-center;
         justify-content: flex-start;
-
-      }
-    }
+	  }
+	  .prize-contact {
+		  .label {
+		    font-size: 30rpx;
+		    font-weight: 600;
+		    margin-top: 30rpx;
+			color: black;
+		  }
+		  
+		  .text {
+		    color: #909909;
+		    margin: 20rpx 0;
+		  }
+	  }
+  }
   }
 }
 

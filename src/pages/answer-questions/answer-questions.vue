@@ -70,7 +70,7 @@ let ifShowResult = ref(false) // 控制是否展示答题结果, 用于确认按
 let isCorrect = ref(true) // 判断是否答对
 let correctNums = ref(0) // 统计总共答对了几道题
 let userInfo = ref(useUserStore().getUserInfo())
-const time_format = 'YYYY-MM-DD hh:mm:ss'
+const time_format = 'YYYY-MM-DD HH:mm:ss'
 let start_time = ''
 let finish_time = ''
 let time_spends = 0
@@ -172,7 +172,7 @@ onLoad(async () => {
   questions.value = data
   curQuestion.data = data[0]
   console.log('questions: ', questions.value)
-  start_time = moment().format('YYYY-MM-DD hh:mm:ss')
+  start_time = moment().format(time_format)
 })
 </script>
 
@@ -180,7 +180,7 @@ onLoad(async () => {
 .container {
   width: 100vw;
   height: 100vh;
-  background-image: url('/static/background.png');
+  background-image: url('/static/background.notext.png');
   background-size: 100% 100vh;
   background-position: top;
   background-repeat: no-repeat;

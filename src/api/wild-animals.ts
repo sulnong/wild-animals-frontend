@@ -22,9 +22,16 @@ export async function wdGetActive() {
   return await cloud.invoke('wd-get-active', { })
 }
 
+/**
+ * 获取活动通用配置：活动状态、是否需要关注公众号、是否 secret
+ */
 export async function wdGetConfig() {
   const config = await cloud.invoke('wd-get-config', { openid })
   useUserStore().setConfig(config)
+}
+
+export async function wdGetLocation() {
+  return await cloud.invoke('wx-get-location', { })
 }
 
 /**

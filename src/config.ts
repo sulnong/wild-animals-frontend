@@ -18,7 +18,7 @@ export const wx = {
   APPID: process.env.NODE_ENV == 'development' ? 'wx6570365231fbe051' : 'wx6570365231fbe051',
   OAUTH_URL: 'https://open.weixin.qq.com/connect/oauth2/authorize',
   REDIRECT_URI: process.env.NODE_ENV == 'development' ? 
-    'http%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run' : 'https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run' // 加不加s的区别
+    'http%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run' : 'https%3A%2F%2Fhw2u9p-raffle.oss.sl-dev.laf.run', // 加不加s的区别
   // REDIRECT_URI: 'http%3A%2F%2Fsl-dev.io'
 }
 

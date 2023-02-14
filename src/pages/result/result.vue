@@ -213,7 +213,7 @@ onLoad(async (params) => {
 .main-container {
 	width: 100vw;
 	height: 100vh;
-	background-image: url('/static/background.jpeg');
+	background-image: url('/static/background.notext.png');
 	background-size: 100% 100vh;
 	background-position: top;
 	background-repeat: no-repeat;
