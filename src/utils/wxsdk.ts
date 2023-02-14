@@ -67,7 +67,7 @@ export default {
         title: '淮北市世界野生动植物日答题抽奖', // 分享标题
         desc: '快来参加抽奖活动吧', // 分享描述
         link: process.env.NODE_ENV == 'development' ? 'https://hw2u9p-raffle.oss.sl-dev.laf.run' : 'https://hw2u9p-raffle.oss.sl-dev.laf.run', // 分享链接，该链接域名或路径必须与当前页面对应的公众号 JS 安全域名一致
-        imgUrl: 'https://hw2u9p-raffle.oss.sl-dev.laf.run/static/background.jpeg', // 分享图标
+        imgUrl: 'https://hw2u9p-raffle.oss.sl-dev.laf.run/static/background.png', // 分享图标
         success: function () {
           // 设置成功
         }
@@ -75,7 +75,7 @@ export default {
       jweixin.updateTimelineShareData({
         title: '淮北市世界野生动植物日答题抽奖', // 分享标题
         link: process.env.NODE_ENV == 'development' ? 'https://hw2u9p-raffle.oss.sl-dev.laf.run' : 'https://hw2u9p-raffle.oss.sl-dev.laf.run', // 分享链接，该链接域名或路径必须与当前页面对应的公众号 JS 安全域名一致
-        imgUrl: 'https://hw2u9p-raffle.oss.sl-dev.laf.run/static/background.jpeg', // 分享图标
+        imgUrl: 'https://hw2u9p-raffle.oss.sl-dev.laf.run/static/background.png', // 分享图标
         success: function () {
           // 设置成功
         }

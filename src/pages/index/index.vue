@@ -80,7 +80,7 @@ import { cloud } from '@/api/cloud'
 import { wx } from '@/config'
 import { wdGetSubsribe, wdGetConfig, wdGetLocation, wdToast } from '@/api/wild-animals'
 import wxjssdk from '@/utils/wxsdk'
-
+import axios from 'axios'
 import moment from 'moment'
 
 let userInfo = reactive({ data: {} } as any)
@@ -97,7 +97,7 @@ onShow(async () => {
 
 async function start_answer_questions() {
   let config = globalConfig.data
-  let { active, isNeedSubscribe, isSecret } = config
+  let { active, isNeedSubscribe, isSecret, isLimitLocation } = config
   console.log('config: ', config)
   // 0. secret
   if (isSecret) {
@@ -110,20 +110,30 @@ async function start_answer_questions() {
     return wdToast(currentInstance.uToast, active.tip, 'error')
   }
   console.log('1. Acitivity enabled: true')
-  // 2. 判断用户是否关注公众号
+  // 2. 判断用户所在位置 - 仅限淮北地区参与
+  if (isLimitLocation) {
+    const { err, ad_info } = await wdGetLocation()
+    // 该接口为免费services API，可能失败，这时候就不处理
+    // 仅当获取到用户位置且不为淮北市时执行
+    // 2023.2.14 手机运营商网络精确不到市，限定安徽省
+    if (!err) console.log('ad_info: ', ad_info)
+    if (!err && ad_info.province != '安徽省') { return alert('该活动仅限淮北地区参与') }
+  }
+  // 3. 判断用户是否关注公众号
   if (isNeedSubscribe) {
     const { err, subscribe } = await wdGetSubsribe(userInfo.data.openid)
     if (!err && subscribe == 0) {
       return wdToast(currentInstance.uToast, '您需要关注淮北林业公众号后方可答题')
     }
   }
-  // 3.判断用户是否已授权
+  // 4.判断用户是否已授权
   console.log('userInfo: ', userInfo.data)
   if (!userInfo.data.openid) {
     return wdToast(currentInstance.uToast, '您必须授权才能答题~')
   }
   console.log('2. User have authorized.')
-  // 4. 判断用户当天是否已经答过题
+  
+  // 5. 判断用户当天是否已经答过题
   const today = moment().format('YYYY-MM-DD')
   if (userInfo.data.hasOwnProperty(today)) {
     return wdToast(currentInstance.uToast, '当日已答过题，一天只能答一次哦')
@@ -147,17 +157,13 @@ onLoad(async (params) => {
   const userStore = useUserStore()
   userInfo.data = userStore.userInfo
   
+  await wxjssdk.wxconfig()
+  await wxjssdk.updateAppMessageShareData()
+  
   // 1. Check 用户环境
   let target = window.navigator.userAgent.toLowerCase()
   let isWeixin=target.match(/MicroMessenger/i) == 'micromessenger' ? true : false
   if (!isWeixin) { return alert('该活动必须在微信中参与') }
-  
-  // 2. 判断用户所在位置 - 仅限淮北地区参与
-  const { err, ad_info } = await wdGetLocation()
-  // 该接口为免费services API，可能失败，这时候就不处理
-  // 仅当获取到用户位置且不为淮北市时执行
-  if (!err) console.log('ad_info: ', ad_info)
-  if (!err && ad_info.city != '淮北市') { return alert('该活动仅限淮北地区参与') }
   
   // 3. 检测本地缓存: 是否存在openid且不为控
   if (userInfo.data.openid && userInfo.data.openid != '') {
@@ -176,9 +182,11 @@ onLoad(async (params) => {
     console.log('code: ', code)
     // Get access_token by code
     const { err, err_msg, data } = await cloud.invoke('Get-UserInfo', { code })
-    if (err) {
+    if (err && err != 3) {
       return wdToast(currentInstance.uToast, '获取用户信息失败，请退出后重试', 'error')
     }
+    // err = 3 意味着尚未点击授权的用户
+    if (err && err == 3) return
     userInfo.data = data
     userStore.setUserinfo(data)
   } else {

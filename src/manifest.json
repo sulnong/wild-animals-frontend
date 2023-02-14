@@ -73,9 +73,10 @@
         "title" : "",
         "devServer" : {
             "host" : "hw2u9p-raffle.oss.sl-dev.laf.run",
-            "port" : 80,
+            "port" : 3000,
             "disableHostCheck" : true,
             "https" : false
+            
         },
         "router" : {
             "mode" : "history",

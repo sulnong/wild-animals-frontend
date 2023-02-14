@@ -6,13 +6,13 @@ import uni from "@dcloudio/vite-plugin-uni"
 export default defineConfig({
   plugins: [uni()],
   server: {
-    proxy: {
-      [process.env.VUE_APP_BASE_API]: {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: path => path.replace(new RegExp('^' + process.env.VUE_APP_BASE_API), '')
-      },
-    }
+    // proxy: {
+    //   [process.env.VUE_APP_BASE_API]: {
+    //     target: 'http://localhost:8000',
+    //     changeOrigin: true,
+    //     rewrite: path => path.replace(new RegExp('^' + process.env.VUE_APP_BASE_API), '')
+    //   },
+    // }
   },
   define: {
     'process.env.MY_ENV': JSON.stringify('helloworld')
