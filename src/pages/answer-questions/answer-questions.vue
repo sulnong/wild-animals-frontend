@@ -160,7 +160,7 @@ onLoad(async () => {
   await wxjssdk.wxconfig()
   wxjssdk.hideMenuItems()
   // 获取答题内容
-  const { err, err_msg, data } = await cloud.invoke('Get-Questions', {})
+  const { err, err_msg, data } = await cloud.invoke('wd-get-questions', {})
   if (err != 0) {
     uni.showToast({
       icon: 'error',
