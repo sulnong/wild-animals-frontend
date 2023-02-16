@@ -156,9 +156,6 @@ async function nextQuestion() {
 }
 
 onLoad(async () => {
-  // 非首页禁止分享
-  await wxjssdk.wxconfig()
-  wxjssdk.hideMenuItems()
   // 获取答题内容
   const { err, err_msg, data } = await cloud.invoke('wd-get-questions', {})
   if (err != 0) {
@@ -173,6 +170,9 @@ onLoad(async () => {
   curQuestion.data = data[0]
   console.log('questions: ', questions.value)
   start_time = moment().format(time_format)
+  // 非首页禁止分享
+  await wxjssdk.wxconfig()
+  wxjssdk.hideMenuItems()
 })
 </script>
 
