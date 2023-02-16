@@ -39,14 +39,14 @@
     <!-- 抽中奖品文字提示 -->
     <view v-if="is_wined" class="tip-submit">
       恭喜您抽中奖品：淮北市动物园门票一张。请点击下方填写信息按钮
-      填入您的姓名和手机号，便于兑奖。
+      填入您的姓名和手机号，便于兑奖。详情请参考首页活动说明。
     </view>
     <!-- 未中奖展示 -->
     <view v-if="is_raffled && !is_wined" class="tip">
       很抱歉，您未中奖，请下次再尝试~
     </view>
     <!-- 中奖后填写信息 -->
-    <view v-if="is_wined" class="btn-container">
+    <view v-if="is_wined && !is_submited" class="btn-container">
       <button class="btn" @click="openContactInputModal">填写信息</button>
     </view>
     <!-- 遮罩层演示抽奖等待 -->
@@ -86,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { onLoad, onShow, onBackPress, onReady } from '@dcloudio/uni-app'
+import { onLoad, onShow, onBackPress } from '@dcloudio/uni-app'
 import { getCurrentInstance, ComponentInternalInstance, ref, reactive, nextTick } from 'vue'
 import { useUserStore } from '@/store/user'
 import { cloud } from '@/api/cloud'
@@ -99,6 +99,7 @@ let show_mask = ref(false)
 let show_raffle_btn = ref(false)    // 控制展示抽奖按钮
 let is_wined = ref(false)           // 控制展示填写信息按钮
 let is_raffled = ref(false)         // 是否已抽奖
+let is_submited = ref(false)        // 是否已填写信息
 
 let showContactModal = ref(false)
 let contactForm = reactive({
@@ -131,7 +132,6 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance
 onShow(() => {
   currentInstance = proxy?.$refs
   console.log('currentInstance: ', currentInstance)
-  console.log(currentInstance.uModal)
 })
 
 async function handleConfirmModal() {
@@ -139,7 +139,7 @@ async function handleConfirmModal() {
   showContactModal.value = true
   currentInstance.uForm.validate(async (valid: any) => {
     if (!valid) return // 表单输入框不消失，直到用户填对或者手动点击取消为止
-    const { err, err_msg } = await wdSubmitContact(contactForm.name, contactForm.phone)
+    const { err, err_msg } = await wdSubmitContact(userInfo.data.openid, contactForm.name, contactForm.phone)
     if (err) {
       console.log(err)
     }
@@ -147,13 +147,14 @@ async function handleConfirmModal() {
       title: '填写成功, 手机号和姓名将作为兑换凭据',
       type: 'success',
       position: 'top',
-      duration: 8000
+      duration: 6000
     })
+    is_submited.value = true
     setTimeout(() => {
       uni.redirectTo({
         url: '/pages/index/index'
       })
-    }, 8000)
+    }, 6000)
     showContactModal.value = false
   })
 }
@@ -257,7 +258,7 @@ onLoad(async (params) => {
   
   .tip-submit {
     height: 120rpx;
-    margin: 8rpx 30rpx;
+    margin: 8rpx 50rpx;
     @include flex-row-center;
     font-size: 36rpx;
     color: #909909;

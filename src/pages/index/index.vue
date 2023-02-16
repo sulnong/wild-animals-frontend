@@ -19,14 +19,15 @@
         </view>
 
         <view class="label">活动时间</view>
-        <view class="text">2023年2月27日-2023年3月2日</view>
+        <view class="text">2023年2月28日-2023年3月2日</view>
         <u-line borderStyle="dashed" color="#909399"></u-line>
         <view class="label">活动规则</view>
         <view class="text">活动期间全部答对即可参与抽奖，一天只能参与一次答题。</view>
         <u-line borderStyle="dashed" color="#909399"></u-line>
         <view class="label">活动说明</view>
-        <view class="text">活动共举行5天，总计 500 份奖品，每天抽出 100 份奖品，抽完即止。</view>
+        <view class="text">活动共举行3天，总计 500 份奖品，抽完即止。</view>
         <view class="text">每个人最多可中奖1次。</view>
+        <view class="text">中奖后，请根据页面提示填写您的姓名和手机号，作为兑换依据。</view>
         <u-line borderStyle="dashed" color="#909399"></u-line>
         <view class="label">活动奖品</view>
         <view class="text">淮北市动物园门票一张</view>
@@ -61,12 +62,37 @@
             <view class="text"> {{ userInfo.data.contact.name }}   {{ userInfo.data.contact.phone }} </view>
             <u-line borderStyle="dashed" color="#909399"></u-line>
           </view>
+          <view v-else class="prize-contact"> 
+            <button class="contact-btn" @click="openContactInputModal">填写中奖凭据</button>
+          </view>
         </view>
       </view>
     </view>
 
     <view class="bottom-fixed"></view>
     <u-toast ref="uToast" />
+    <u-modal v-model="showContactModal"
+          width="90%" 
+          show-cancel-button
+          border-radius="30" 
+          negative-top="450rpx"
+          title="填写中奖信息" 
+          ref="uModal"
+          :title-style="{color: '#2979ff'}"
+          @confirm="handleConfirmModal"
+          @cancel="handleCancelModal">
+          <view class="slot-content">
+            <view class="tip"> 请填写姓名和手机号，作为兑换奖品的凭证</view>
+            <u-form :model="contactForm" ref="uForm" label-width="150" :label-style="{color: '#909909'}">
+              <u-form-item label="姓名" prop="name" required="">
+                <u-input v-model="contactForm.name" type="text" placeholder="请输入姓名" border/>
+                </u-form-item>
+              <u-form-item label="手机号" prop="phone" required>
+                <u-input v-model="contactForm.phone" type="number" placeholder="请输入手机号" border/>
+                </u-form-item>
+            </u-form>
+          </view>
+    </u-modal>
   </view>
 </template>
 
@@ -74,16 +100,36 @@
 
 import { onLoad } from '@dcloudio/uni-app'
 import { onShow } from '@dcloudio/uni-app'
-import { getCurrentInstance, reactive, ComponentInternalInstance } from 'vue'
+import { getCurrentInstance, reactive, ComponentInternalInstance, nextTick, ref } from 'vue'
 import { useUserStore } from '@/store/user'
 import { cloud } from '@/api/cloud'
 import { wx } from '@/config'
-import { wdGetSubsribe, wdGetConfig, wdGetLocation, wdToast } from '@/api/wild-animals'
+import { wdGetSubsribe, wdGetConfig, wdGetLocation, wdToast, wdSubmitContact } from '@/api/wild-animals'
 import wxjssdk from '@/utils/wxsdk'
 import moment from 'moment'
 
 let userInfo = reactive({ data: {} } as any)
 let globalConfig = reactive({data: {} }as any)
+
+let showContactModal = ref(false)
+let contactForm = reactive({
+  name: '',
+  phone: ''
+})
+let formRules = reactive({
+  name: [{ 
+    required: true, 
+    message: '请输入姓名', 
+    // 可以单个或者同时写两个触发验证方式 
+    trigger: ['blur'] }],
+  phone: [{
+    required: true,
+    min: 11,
+    max: 11,
+    message: '请输入11位手机号', 
+    trigger: 'blur' }]
+})
+
 
 let currentInstance = '' as any || undefined
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
@@ -122,7 +168,10 @@ async function start_answer_questions() {
   if (isNeedSubscribe) {
     const { err, subscribe } = await wdGetSubsribe(userInfo.data.openid)
     if (!err && subscribe == 0) {
-      return wdToast(currentInstance.uToast, '您需要关注淮北林业公众号后方可答题')
+      setTimeout(() => {
+        window.location.href = 'https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA3NDk4MDQ0MQ==&scene=110#wechat_redirect'
+      }, 2000)
+      return wdToast(currentInstance.uToast, '您需要关注淮北林业公众号后方可答题') 
     }
   }
   // 4. 判断用户是否已授权
@@ -151,6 +200,7 @@ function redirectToWx() {
   console.log(`Redirect to ${wx_auth_url}... `)
   window.location.href = wx_auth_url
 }
+
 
 onLoad(async (params) => {
   const userStore = useUserStore()
@@ -194,7 +244,41 @@ onLoad(async (params) => {
   }
 })
 
-// const user = useUserStore()
+async function openContactInputModal() {
+  showContactModal.value = true
+  await nextTick()
+  currentInstance.uForm.setRules(formRules)
+}
+
+async function handleConfirmModal() {
+  console.log('confirm')
+  showContactModal.value = true
+  currentInstance.uForm.validate(async (valid: any) => {
+    if (!valid) return // 表单输入框不消失，直到用户填对或者手动点击取消为止
+    const { err, err_msg } = await wdSubmitContact(userInfo.data.openid, contactForm.name, contactForm.phone)
+    if (err) {
+      console.log(err)
+    }
+    currentInstance.uToast.show({
+      title: '填写成功, 手机号和姓名将作为兑换凭据',
+      type: 'success',
+      position: 'top',
+      duration: 3000
+    })
+    setTimeout(() => {
+      uni.redirectTo({
+        url: '/pages/index/index'
+      })
+    }, 3000)
+    showContactModal.value = false
+  })
+}
+
+function handleCancelModal() {
+  console.log('Close modal')
+  showContactModal.value = false
+}
+
 </script>
 
 <style lang="scss">
@@ -223,9 +307,9 @@ $card-margin-side:10rpx;
     .btn-answer {
       position: absolute;
       bottom: 300rpx;
-      right: 20rpx;
+      right: 25rpx;
       width: 300rpx;
-      height: 100rpx;
+      height: 120rpx;
       @include flex-row-center;
       background-image: url('/static/start-btn-background.png');
       color: #115A6A;
@@ -326,11 +410,24 @@ $card-margin-side:10rpx;
 		    color: #909909;
 		    margin: 20rpx 0;
 		  }
+      
+      .contact-btn {
+        margin-top: 40rpx;
+        width: 50%;
+        height: 100rpx;
+        background-image: linear-gradient(to right, #43e97b 0%, #38f9d7 100%);
+      }
 	  }
   }
   }
 }
-
+.slot-content {
+    padding: 0 30rpx;
+    .tip {
+      margin: 20rpx 0rpx;
+      color: #909909;
+    }
+  }
 .bottom-fixed {
   position: fixed;
   bottom: 0;
