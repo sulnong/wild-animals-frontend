@@ -2,9 +2,12 @@
   <view>
     <view class="content">
       <view class="bottom-area">
-        <button class="btn-answer animate__animated animate__fadeInTopLeft" @click="start_answer_questions">
+        <u-button class="btn-answer animate__animated animate__fadeInTopLeft" 
+        :ripple="true"
+        :loading="btnLoading"
+        @click="start_answer_questions">
           开始答题
-        </button>
+        </u-button>
 		 <view class="activity-stastics">
 			已有 <text style="color: #115A6A;font-weight: bold;">{{ globalConfig.data.totalUserNum }}</text> 人参与
 		 </view>
@@ -36,6 +39,9 @@
         <view class="label">兑换方式与时间</view>
         <view class="text">凭姓名和手机号前往淮北市相山动物园进行兑换。</view>
         <view class="text">兑换时限为 3月3日 至 3月12日</view>
+        <u-line borderStyle="dashed" color="#909399"></u-line>
+        <view class="label">其他</view>
+        <view class="text">参与该活动需要您关注 淮北林业公众号  并授权您的公开信息，获取的公开信息仅为页面展示所用。</view>
         <u-line borderStyle="dashed" color="#909399"></u-line>
         <view class="label">主办单位</view>
         <view class="text" style="color: #2979ff;"
@@ -71,6 +77,7 @@
 
     <view class="bottom-fixed"></view>
     <u-toast ref="uToast" />
+    <u-top-tips ref="uTips" />
     <u-modal v-model="showContactModal"
           width="90%" 
           show-cancel-button
@@ -104,13 +111,14 @@ import { getCurrentInstance, reactive, ComponentInternalInstance, nextTick, ref 
 import { useUserStore } from '@/store/user'
 import { cloud } from '@/api/cloud'
 import { wx } from '@/config'
-import { wdGetSubsribe, wdGetConfig, wdGetLocation, wdToast, wdSubmitContact } from '@/api/wild-animals'
+import { wdGetSubscribe, wdGetConfig, wdGetLocation, wdToast, wdSubmitContact } from '@/api/wild-animals'
 import wxjssdk from '@/utils/wxsdk'
 import moment from 'moment'
 
 let userInfo = reactive({ data: {} } as any)
 let globalConfig = reactive({data: {} }as any)
 
+let btnLoading = ref(false)
 let showContactModal = ref(false)
 let contactForm = reactive({
   name: '',
@@ -136,22 +144,24 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance
 
 onShow(async () => {
   currentInstance = proxy?.$refs
-  await wdGetConfig()
-  globalConfig.data = useUserStore().getConfig()
+  
 })
 
 async function start_answer_questions() {
+  btnLoading.value = true
   let config = globalConfig.data
   let { active, isNeedSubscribe, isSecret, isLimitLocation } = config
   console.log('config: ', config)
   // 0. secret
   if (isSecret) {
+    btnLoading.value = false
     return uni.redirectTo({
       url: '/pages/answer-questions/answer-questions',
     })
   }
   // 1. 判断当前是否处于活动有效期
   if (!active.is_active) {
+    btnLoading.value = false
     return wdToast(currentInstance.uToast, active.tip, 'error')
   }
   console.log('1. Activity enabled: true')
@@ -162,28 +172,35 @@ async function start_answer_questions() {
     // 仅当获取到用户位置且不为淮北市时执行
     // 2023.2.14 手机运营商网络精确不到市，限定安徽省
     if (!err) console.log('ad_info: ', ad_info)
+    btnLoading.value = false
     if (!err && ad_info.province != '安徽省') { return alert('该活动仅限淮北地区参与') }
   }
-  // 3. 判断用户是否关注公众号
-  if (isNeedSubscribe) {
-    const { err, subscribe } = await wdGetSubsribe(userInfo.data.openid)
-    if (!err && subscribe == 0) {
-      setTimeout(() => {
-        window.location.href = 'https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA3NDk4MDQ0MQ==&scene=110#wechat_redirect'
-      }, 2000)
-      return wdToast(currentInstance.uToast, '您需要关注淮北林业公众号后方可答题') 
-    }
-  }
-  // 4. 判断用户是否已授权
+  // 3. 用户尚未授权，弹窗提醒其授权
   console.log('userInfo: ', userInfo.data)
   if (!userInfo.data.openid) {
-    return wdToast(currentInstance.uToast, '您必须授权才能答题~')
+    btnLoading.value = false
+    return redirectToWx()
   }
   console.log('2. User have authorized.')
-  
+
+  // 4. 判断用户是否关注公众号
+  if (isNeedSubscribe) {
+    const { err, subscribe } = await wdGetSubscribe(userInfo.data.openid)
+    btnLoading.value = false
+    if (!err && subscribe == 0) {
+      setTimeout(() => {
+        window.location.href = 'https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzA3NDk4MDQ0MQ==#wechat_redirect'
+      }, 4500)
+      return wdToast(currentInstance.uTips,
+        '您需要关注淮北林业公众号后方可答题, 请在稍后跳转的页面点击 淮北林业 进行关注~',
+        'primary', 'top', 8000)
+    }
+  }
+
   // 5. 判断用户当天是否已经答过题
   const today = moment().format('YYYY-MM-DD')
   if (userInfo.data.hasOwnProperty(today)) {
+    btnLoading.value = false
     return wdToast(currentInstance.uToast, '当日已答过题，一天只能答一次哦')
   }
   console.log('3. User have not answered at ', today)
@@ -203,9 +220,11 @@ function redirectToWx() {
 
 
 onLoad(async (params) => {
+  await wdGetConfig()
   const userStore = useUserStore()
   userInfo.data = userStore.userInfo
-  
+  globalConfig.data = userStore.getConfig()
+
   // 1. Check 用户环境
   let target = window.navigator.userAgent.toLowerCase()
   let isWeixin=target.match(/MicroMessenger/i) == 'micromessenger' ? true : false
@@ -239,8 +258,9 @@ onLoad(async (params) => {
     if (err && err == 3) return
     userInfo.data = data
     userStore.setUserinfo(data)
+  // 2023-02-17 此处逻辑修改, 用户点击开始答题时才发起授权
   } else {
-    redirectToWx()
+    // redirectToWx()
   }
 })
 
@@ -308,8 +328,8 @@ $card-margin-side:10rpx;
       position: absolute;
       bottom: 300rpx;
       right: 25rpx;
-      width: 300rpx;
-      height: 120rpx;
+      width: 320rpx;
+      height: 100rpx;
       @include flex-row-center;
       background-image: url('/static/start-btn-background.png');
       color: #115A6A;

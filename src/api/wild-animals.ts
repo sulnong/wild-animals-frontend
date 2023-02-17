@@ -10,7 +10,7 @@ export async function wdSubmitContact(openid: string, name: string, phone: strin
 /**
  * 判断当前用户是否已关注公众号
  */
-export async function wdGetSubsribe(openid: string) {
+export async function wdGetSubscribe(openid: string) {
   return await cloud.invoke('wx-get-subscribe', { openid })
 }
 
@@ -19,7 +19,7 @@ export async function wdGetSubsribe(openid: string) {
  * 获取当前活动状态：尚未开始，正在进行，已结束
  */
 export async function wdGetActive() {
-  return await cloud.invoke('wd-get-active', { })
+  return await cloud.invoke('wd-get-active', {})
 }
 
 /**
@@ -31,7 +31,7 @@ export async function wdGetConfig() {
 }
 
 export async function wdGetLocation() {
-  return await cloud.invoke('wx-get-location', { })
+  return await cloud.invoke('wx-get-location', {})
 }
 
 /**
